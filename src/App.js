@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import './App.css';
 
 // Elite Dangerous Materials Database
@@ -609,29 +609,63 @@ function calculateBlueprintCosts(selectedBlueprints) {
 
 function App() {
   const [activeTab, setActiveTab] = useState('blueprints');
-  const [inventory, setInventory] = useState([
-    { item: 'Carbon', quantity: 150 },
-    { item: 'Iron', quantity: 200 },
-    { item: 'Phosphorus', quantity: 100 },
-    { item: 'Sulphur', quantity: 120 },
-    { item: 'Atypical Disrupted Wake Echoes', quantity: 50 },
-    { item: 'Chemical Processors', quantity: 30 },
-  ]);
-  
+
+  // Load inventory from localStorage or use defaults
+  const [inventory, setInventory] = useState(() => {
+    const saved = localStorage.getItem('eliteTraderInventory');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved inventory:', e);
+      }
+    }
+    return [
+      { item: 'Carbon', quantity: 150 },
+      { item: 'Iron', quantity: 200 },
+      { item: 'Phosphorus', quantity: 100 },
+      { item: 'Sulphur', quantity: 120 },
+      { item: 'Atypical Disrupted Wake Echoes', quantity: 50 },
+      { item: 'Chemical Processors', quantity: 30 },
+    ];
+  });
+
   const [manualNeeds, setManualNeeds] = useState([]);
-  const [selectedBlueprints, setSelectedBlueprints] = useState([]);
+
+  // Load selected blueprints from localStorage or use empty array
+  const [selectedBlueprints, setSelectedBlueprints] = useState(() => {
+    const saved = localStorage.getItem('eliteTraderBlueprints');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved blueprints:', e);
+      }
+    }
+    return [];
+  });
   
   const [searchOwned, setSearchOwned] = useState('');
   const [searchNeeded, setSearchNeeded] = useState('');
   const [newQty, setNewQty] = useState(10);
   const [newNeedQty, setNewNeedQty] = useState(1);
-  
+
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedBp, setSelectedBp] = useState('');
   const [fromGrade, setFromGrade] = useState(1);
   const [toGrade, setToGrade] = useState(5);
   const [rolls, setRolls] = useState(1);
-  
+
+  // Save inventory to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('eliteTraderInventory', JSON.stringify(inventory));
+  }, [inventory]);
+
+  // Save selected blueprints to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('eliteTraderBlueprints', JSON.stringify(selectedBlueprints));
+  }, [selectedBlueprints]);
+
   const blueprintNeeds = useMemo(() => calculateBlueprintCosts(selectedBlueprints), [selectedBlueprints]);
   
   const allNeeds = useMemo(() => {
