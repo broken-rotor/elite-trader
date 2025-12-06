@@ -379,6 +379,26 @@ const BLUEPRINTS_DB = {
   }
 };
 
+// Reroll strategies - number of rolls per grade
+const REROLL_STRATEGIES = {
+  single: {
+    name: 'Single',
+    rolls: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }
+  },
+  minimum: {
+    name: 'Minimum',
+    rolls: { 1: 1, 2: 1, 3: 3, 4: 4, 5: 6 }
+  },
+  typical: {
+    name: 'Typical',
+    rolls: { 1: 1, 2: 2, 3: 4, 4: 8, 5: 10 }
+  },
+  maximum: {
+    name: 'Maximum',
+    rolls: { 1: 2, 2: 3, 3: 5, 4: 10, 5: 12 }
+  }
+};
+
 // Trade ratios
 const TRADE_UP_COST = 6;
 const TRADE_DOWN_YIELD = 3;
@@ -584,26 +604,33 @@ function generateTradeSteps(srcMat, targetMat, inputAmount, outputAmount) {
 
 function calculateBlueprintCosts(selectedBlueprints) {
   const totals = {};
-  
+
   for (const bp of selectedBlueprints) {
     const moduleData = BLUEPRINTS_DB[bp.module];
     if (!moduleData) continue;
-    
+
     const blueprintData = moduleData.blueprints[bp.blueprint];
     if (!blueprintData) continue;
-    
+
+    // Get the reroll strategy
+    const strategy = REROLL_STRATEGIES[bp.strategy || 'single'];
+    if (!strategy) continue;
+
     for (let g = bp.fromGrade; g <= bp.toGrade; g++) {
       const gradeMats = blueprintData.grades[g];
       if (!gradeMats) continue;
-      
+
+      // Get rolls for this specific grade based on strategy
+      const rollsForGrade = strategy.rolls[g] || 1;
+
       for (const mat of gradeMats) {
         const key = mat.item;
         if (!totals[key]) totals[key] = 0;
-        totals[key] += mat.qty * bp.rolls;
+        totals[key] += mat.qty * rollsForGrade;
       }
     }
   }
-  
+
   return Object.entries(totals).map(([item, quantity]) => ({ item, quantity }));
 }
 
@@ -654,7 +681,7 @@ function App() {
   const [selectedBp, setSelectedBp] = useState('');
   const [fromGrade, setFromGrade] = useState(1);
   const [toGrade, setToGrade] = useState(5);
-  const [rolls, setRolls] = useState(1);
+  const [strategy, setStrategy] = useState('typical');
 
   // Save inventory to localStorage whenever it changes
   useEffect(() => {
@@ -717,7 +744,7 @@ function App() {
         blueprint: selectedBp,
         fromGrade,
         toGrade,
-        rolls
+        strategy
       }]);
     }
   };
@@ -781,27 +808,34 @@ function App() {
                   {[1,2,3,4,5].map(g => <option key={g} value={g}>G{g}</option>)}
                 </select>
               </div>
-              
+
               <div className="add-row">
-                <input type="number" min="1" value={rolls} onChange={(e) => setRolls(parseInt(e.target.value) || 1)} placeholder="Rolls" />
+                <select value={strategy} onChange={(e) => setStrategy(e.target.value)}>
+                  {Object.entries(REROLL_STRATEGIES).map(([key, strat]) => (
+                    <option key={key} value={key}>{strat.name}</option>
+                  ))}
+                </select>
                 <button className="btn-orange" onClick={addBlueprint} disabled={!selectedBp}>Add</button>
               </div>
             </div>
             
             {/* Selected Blueprints */}
             <div className="list-container">
-              {selectedBlueprints.map(bp => (
-                <div key={bp.id} className="list-item">
-                  <span>
-                    <span className="module">{BLUEPRINTS_DB[bp.module]?.name}</span>
-                    <span style={{color: '#64748b', margin: '0 8px'}}>→</span>
-                    <span className="blueprint">{bp.blueprint}</span>
-                    <span className="grades">G{bp.fromGrade}-G{bp.toGrade}</span>
-                    <span className="rolls">×{bp.rolls} rolls</span>
-                  </span>
-                  <button className="btn-remove" onClick={() => removeBlueprint(bp.id)}>✕</button>
-                </div>
-              ))}
+              {selectedBlueprints.map(bp => {
+                const strategyName = REROLL_STRATEGIES[bp.strategy]?.name || 'Unknown';
+                return (
+                  <div key={bp.id} className="list-item">
+                    <span>
+                      <span className="module">{BLUEPRINTS_DB[bp.module]?.name}</span>
+                      <span style={{color: '#64748b', margin: '0 8px'}}>→</span>
+                      <span className="blueprint">{bp.blueprint}</span>
+                      <span className="grades">G{bp.fromGrade}-G{bp.toGrade}</span>
+                      <span className="rolls">{strategyName}</span>
+                    </span>
+                    <button className="btn-remove" onClick={() => removeBlueprint(bp.id)}>✕</button>
+                  </div>
+                );
+              })}
               {selectedBlueprints.length === 0 && (
                 <p className="empty-message">No blueprints selected. Add blueprints above to calculate material costs.</p>
               )}
