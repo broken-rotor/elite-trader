@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import './App.css';
 
 // Elite Dangerous Materials Database
 const MATERIALS_DB = [
@@ -344,70 +345,6 @@ const BLUEPRINTS_DB = {
       }
     }
   },
-  "Weapons (Beam Laser)": {
-    name: "Beam Laser",
-    blueprints: {
-      "Long Range": {
-        grades: {
-          1: [{ item: "Sulphur", qty: 1 }],
-          2: [{ item: "Sulphur", qty: 1 }, { item: "Modified Consumer Firmware", qty: 1 }],
-          3: [{ item: "Sulphur", qty: 1 }, { item: "Modified Consumer Firmware", qty: 1 }, { item: "Focus Crystals", qty: 1 }],
-          4: [{ item: "Modified Consumer Firmware", qty: 1 }, { item: "Focus Crystals", qty: 1 }, { item: "Conductive Polymers", qty: 1 }],
-          5: [{ item: "Cracked Industrial Firmware", qty: 1 }, { item: "Biotech Conductors", qty: 1 }, { item: "Thermic Alloys", qty: 1 }]
-        }
-      },
-      "Overcharged": {
-        grades: {
-          1: [{ item: "Nickel", qty: 1 }],
-          2: [{ item: "Nickel", qty: 1 }, { item: "Conductive Components", qty: 1 }],
-          3: [{ item: "Nickel", qty: 1 }, { item: "Conductive Components", qty: 1 }, { item: "Electrochemical Arrays", qty: 1 }],
-          4: [{ item: "Zinc", qty: 1 }, { item: "Conductive Ceramics", qty: 1 }, { item: "Polymer Capacitors", qty: 1 }],
-          5: [{ item: "Zirconium", qty: 1 }, { item: "Conductive Polymers", qty: 1 }, { item: "Modified Embedded Firmware", qty: 1 }]
-        }
-      },
-      "Efficient": {
-        grades: {
-          1: [{ item: "Sulphur", qty: 1 }],
-          2: [{ item: "Sulphur", qty: 1 }, { item: "Heat Dispersion Plate", qty: 1 }],
-          3: [{ item: "Exceptional Scrambled Emission Data", qty: 1 }, { item: "Chromium", qty: 1 }, { item: "Heat Exchangers", qty: 1 }],
-          4: [{ item: "Irregular Emission Data", qty: 1 }, { item: "Selenium", qty: 1 }, { item: "Heat Vanes", qty: 1 }],
-          5: [{ item: "Unexpected Emission Data", qty: 1 }, { item: "Cadmium", qty: 1 }, { item: "Proto Heat Radiators", qty: 1 }]
-        }
-      }
-    }
-  },
-  "Weapons (Multi-cannon)": {
-    name: "Multi-cannon",
-    blueprints: {
-      "Overcharged": {
-        grades: {
-          1: [{ item: "Nickel", qty: 1 }],
-          2: [{ item: "Nickel", qty: 1 }, { item: "Conductive Components", qty: 1 }],
-          3: [{ item: "Nickel", qty: 1 }, { item: "Conductive Components", qty: 1 }, { item: "Electrochemical Arrays", qty: 1 }],
-          4: [{ item: "Zinc", qty: 1 }, { item: "Conductive Ceramics", qty: 1 }, { item: "Polymer Capacitors", qty: 1 }],
-          5: [{ item: "Zirconium", qty: 1 }, { item: "Conductive Polymers", qty: 1 }, { item: "Modified Embedded Firmware", qty: 1 }]
-        }
-      },
-      "Efficient": {
-        grades: {
-          1: [{ item: "Sulphur", qty: 1 }],
-          2: [{ item: "Sulphur", qty: 1 }, { item: "Heat Dispersion Plate", qty: 1 }],
-          3: [{ item: "Exceptional Scrambled Emission Data", qty: 1 }, { item: "Chromium", qty: 1 }, { item: "Heat Exchangers", qty: 1 }],
-          4: [{ item: "Irregular Emission Data", qty: 1 }, { item: "Selenium", qty: 1 }, { item: "Heat Vanes", qty: 1 }],
-          5: [{ item: "Unexpected Emission Data", qty: 1 }, { item: "Cadmium", qty: 1 }, { item: "Proto Heat Radiators", qty: 1 }]
-        }
-      },
-      "Short Range": {
-        grades: {
-          1: [{ item: "Nickel", qty: 1 }],
-          2: [{ item: "Nickel", qty: 1 }, { item: "Modified Consumer Firmware", qty: 1 }],
-          3: [{ item: "Nickel", qty: 1 }, { item: "Modified Consumer Firmware", qty: 1 }, { item: "Electrochemical Arrays", qty: 1 }],
-          4: [{ item: "Modified Consumer Firmware", qty: 1 }, { item: "Electrochemical Arrays", qty: 1 }, { item: "Biotech Conductors", qty: 1 }],
-          5: [{ item: "Cracked Industrial Firmware", qty: 1 }, { item: "Configurable Components", qty: 1 }, { item: "Biotech Conductors", qty: 1 }]
-        }
-      }
-    }
-  },
   "Power Distributor": {
     name: "Power Distributor",
     blueprints: {
@@ -447,17 +384,15 @@ const TRADE_UP_COST = 6;
 const TRADE_DOWN_YIELD = 3;
 const TRADE_ACROSS_COST = 6;
 
-// Get material info
+// Helper functions
 function getMaterial(itemName) {
   return MATERIALS_DB.find(m => m.item === itemName);
 }
 
-// Get materials at type/quality
 function getMaterialsAtTypeQuality(type, quality) {
   return MATERIALS_DB.filter(m => m.type === type && m.quality === quality);
 }
 
-// Calculate conversion cost
 function getConversionCost(fromType, fromQuality, toType, toQuality) {
   let cost = 1;
   let currentQuality = fromQuality;
@@ -479,7 +414,6 @@ function getConversionCost(fromType, fromQuality, toType, toQuality) {
   return cost;
 }
 
-// Main optimization algorithm
 function optimizeTrading(inventory, needs) {
   const inv = JSON.parse(JSON.stringify(inventory));
   const req = JSON.parse(JSON.stringify(needs));
@@ -596,7 +530,6 @@ function optimizeTrading(inventory, needs) {
   return { trades, fulfilled, unfulfilled, remainingInventory: inv.filter(i => i.quantity > 0) };
 }
 
-// Generate trade steps
 function generateTradeSteps(srcMat, targetMat, inputAmount, outputAmount) {
   const steps = [];
   let currentType = srcMat.type;
@@ -649,24 +582,6 @@ function generateTradeSteps(srcMat, targetMat, inputAmount, outputAmount) {
   return steps;
 }
 
-// Quality colors
-function getQualityColor(quality) {
-  const colors = { 1: 'text-gray-400', 2: 'text-green-400', 3: 'text-blue-400', 4: 'text-purple-400', 5: 'text-amber-400' };
-  return colors[quality] || 'text-gray-400';
-}
-
-function getQualityBg(quality) {
-  const colors = {
-    1: 'bg-gray-800/50 border-gray-700',
-    2: 'bg-green-900/30 border-green-800/50',
-    3: 'bg-blue-900/30 border-blue-800/50',
-    4: 'bg-purple-900/30 border-purple-800/50',
-    5: 'bg-amber-900/30 border-amber-800/50'
-  };
-  return colors[quality] || 'bg-gray-800/50 border-gray-700';
-}
-
-// Calculate total materials for selected blueprints
 function calculateBlueprintCosts(selectedBlueprints) {
   const totals = {};
   
@@ -677,12 +592,10 @@ function calculateBlueprintCosts(selectedBlueprints) {
     const blueprintData = moduleData.blueprints[bp.blueprint];
     if (!blueprintData) continue;
     
-    // Calculate materials for grades fromGrade to toGrade
     for (let g = bp.fromGrade; g <= bp.toGrade; g++) {
       const gradeMats = blueprintData.grades[g];
       if (!gradeMats) continue;
       
-      // Multiply by rolls
       for (const mat of gradeMats) {
         const key = mat.item;
         if (!totals[key]) totals[key] = 0;
@@ -694,8 +607,7 @@ function calculateBlueprintCosts(selectedBlueprints) {
   return Object.entries(totals).map(([item, quantity]) => ({ item, quantity }));
 }
 
-// Main Component
-export default function EliteTrader() {
+function App() {
   const [activeTab, setActiveTab] = useState('blueprints');
   const [inventory, setInventory] = useState([
     { item: 'Carbon', quantity: 150 },
@@ -714,17 +626,14 @@ export default function EliteTrader() {
   const [newQty, setNewQty] = useState(10);
   const [newNeedQty, setNewNeedQty] = useState(1);
   
-  // Blueprint selection state
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedBp, setSelectedBp] = useState('');
   const [fromGrade, setFromGrade] = useState(1);
   const [toGrade, setToGrade] = useState(5);
   const [rolls, setRolls] = useState(1);
   
-  // Calculate blueprint costs
   const blueprintNeeds = useMemo(() => calculateBlueprintCosts(selectedBlueprints), [selectedBlueprints]);
   
-  // Combine manual needs with blueprint needs
   const allNeeds = useMemo(() => {
     const combined = {};
     for (const n of manualNeeds) {
@@ -738,7 +647,6 @@ export default function EliteTrader() {
   
   const result = useMemo(() => optimizeTrading(inventory, allNeeds), [inventory, allNeeds]);
   
-  // Filtered materials for search
   const filteredOwned = useMemo(() => {
     return MATERIALS_DB.filter(m => m.item.toLowerCase().includes(searchOwned.toLowerCase())).slice(0, 8);
   }, [searchOwned]);
@@ -786,126 +694,96 @@ export default function EliteTrader() {
   
   const availableBlueprints = selectedModule ? Object.keys(BLUEPRINTS_DB[selectedModule]?.blueprints || {}) : [];
   
+  const getQualityClass = (quality) => `quality-${quality}`;
+  const getQualityBgClass = (quality) => `quality-bg-${quality}`;
+  
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-3">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-orange-500 mb-1">Elite Dangerous Material Trader</h1>
-          <p className="text-slate-500 text-xs">Trade ratios: Upgrade 6→1 | Downgrade 1→3 | Cross-type 6→1</p>
+    <div className="app">
+      <div className="container">
+        <div className="header">
+          <h1>Elite Dangerous Material Trader</h1>
+          <p>Trade ratios: Upgrade 6→1 | Downgrade 1→3 | Cross-type 6→1</p>
         </div>
         
         {/* Tabs */}
-        <div className="flex gap-2 mb-4 justify-center">
-          <button
-            onClick={() => setActiveTab('blueprints')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              activeTab === 'blueprints' ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
+        <div className="tabs">
+          <button className={`tab-btn ${activeTab === 'blueprints' ? 'active' : ''}`} onClick={() => setActiveTab('blueprints')}>
             🔧 Blueprints
           </button>
-          <button
-            onClick={() => setActiveTab('manual')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              activeTab === 'manual' ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
+          <button className={`tab-btn ${activeTab === 'manual' ? 'active' : ''}`} onClick={() => setActiveTab('manual')}>
             📝 Manual Entry
           </button>
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              activeTab === 'inventory' ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
+          <button className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>
             📦 Inventory
           </button>
         </div>
         
         {/* Blueprint Selection Tab */}
         {activeTab === 'blueprints' && (
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 mb-4">
-            <h2 className="text-lg font-semibold mb-3 text-orange-400">Select Engineering Blueprints</h2>
+          <div className="panel">
+            <h2 className="orange">Select Engineering Blueprints</h2>
             
-            <div className="grid md:grid-cols-6 gap-2 mb-4">
-              <select
-                value={selectedModule}
-                onChange={(e) => { setSelectedModule(e.target.value); setSelectedBp(''); }}
-                className="bg-slate-800 rounded px-3 py-2 text-sm border border-slate-700 col-span-2"
-              >
+            <div className="blueprint-grid">
+              <select className="col-span-2" value={selectedModule} onChange={(e) => { setSelectedModule(e.target.value); setSelectedBp(''); }}>
                 <option value="">Select Module...</option>
                 {Object.keys(BLUEPRINTS_DB).map(mod => (
                   <option key={mod} value={mod}>{BLUEPRINTS_DB[mod].name}</option>
                 ))}
               </select>
               
-              <select
-                value={selectedBp}
-                onChange={(e) => setSelectedBp(e.target.value)}
-                className="bg-slate-800 rounded px-3 py-2 text-sm border border-slate-700 col-span-2"
-                disabled={!selectedModule}
-              >
+              <select className="col-span-2" value={selectedBp} onChange={(e) => setSelectedBp(e.target.value)} disabled={!selectedModule}>
                 <option value="">Select Blueprint...</option>
                 {availableBlueprints.map(bp => (
                   <option key={bp} value={bp}>{bp}</option>
                 ))}
               </select>
               
-              <div className="flex gap-1">
-                <select value={fromGrade} onChange={(e) => setFromGrade(parseInt(e.target.value))} className="bg-slate-800 rounded px-2 py-2 text-sm border border-slate-700 flex-1">
+              <div className="grade-select">
+                <select value={fromGrade} onChange={(e) => setFromGrade(parseInt(e.target.value))}>
                   {[1,2,3,4,5].map(g => <option key={g} value={g}>G{g}</option>)}
                 </select>
-                <span className="text-slate-500 self-center">→</span>
-                <select value={toGrade} onChange={(e) => setToGrade(parseInt(e.target.value))} className="bg-slate-800 rounded px-2 py-2 text-sm border border-slate-700 flex-1">
+                <span>→</span>
+                <select value={toGrade} onChange={(e) => setToGrade(parseInt(e.target.value))}>
                   {[1,2,3,4,5].map(g => <option key={g} value={g}>G{g}</option>)}
                 </select>
               </div>
               
-              <div className="flex gap-1">
-                <input
-                  type="number"
-                  min="1"
-                  value={rolls}
-                  onChange={(e) => setRolls(parseInt(e.target.value) || 1)}
-                  className="bg-slate-800 rounded px-2 py-2 text-sm border border-slate-700 w-16"
-                  placeholder="Rolls"
-                />
-                <button onClick={addBlueprint} disabled={!selectedBp} className="bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 px-3 py-2 rounded text-sm font-medium transition-colors flex-1">
-                  Add
-                </button>
+              <div className="add-row">
+                <input type="number" min="1" value={rolls} onChange={(e) => setRolls(parseInt(e.target.value) || 1)} placeholder="Rolls" />
+                <button className="btn-orange" onClick={addBlueprint} disabled={!selectedBp}>Add</button>
               </div>
             </div>
             
             {/* Selected Blueprints */}
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="list-container">
               {selectedBlueprints.map(bp => (
-                <div key={bp.id} className="flex items-center justify-between bg-slate-800/50 rounded px-3 py-2 text-sm">
+                <div key={bp.id} className="list-item">
                   <span>
-                    <span className="text-orange-400">{BLUEPRINTS_DB[bp.module]?.name}</span>
-                    <span className="text-slate-400 mx-2">→</span>
-                    <span className="text-blue-400">{bp.blueprint}</span>
-                    <span className="text-slate-500 ml-2">G{bp.fromGrade}-G{bp.toGrade}</span>
-                    <span className="text-emerald-400 ml-2">×{bp.rolls} rolls</span>
+                    <span className="module">{BLUEPRINTS_DB[bp.module]?.name}</span>
+                    <span style={{color: '#64748b', margin: '0 8px'}}>→</span>
+                    <span className="blueprint">{bp.blueprint}</span>
+                    <span className="grades">G{bp.fromGrade}-G{bp.toGrade}</span>
+                    <span className="rolls">×{bp.rolls} rolls</span>
                   </span>
-                  <button onClick={() => removeBlueprint(bp.id)} className="text-red-400 hover:text-red-300 px-2">✕</button>
+                  <button className="btn-remove" onClick={() => removeBlueprint(bp.id)}>✕</button>
                 </div>
               ))}
               {selectedBlueprints.length === 0 && (
-                <p className="text-slate-500 text-center py-4 text-sm">No blueprints selected. Add blueprints above to calculate material costs.</p>
+                <p className="empty-message">No blueprints selected. Add blueprints above to calculate material costs.</p>
               )}
             </div>
             
             {/* Blueprint Material Summary */}
             {blueprintNeeds.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-slate-800">
-                <h3 className="text-sm font-medium text-amber-400 mb-2">Materials Required for Blueprints</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="material-summary">
+                <h3>Materials Required for Blueprints</h3>
+                <div className="material-tags">
                   {blueprintNeeds.map((n, i) => {
                     const mat = getMaterial(n.item);
                     return (
-                      <span key={i} className={`px-2 py-1 rounded text-xs border ${getQualityBg(mat?.quality)}`}>
-                        <span className={getQualityColor(mat?.quality)}>{n.item}</span>
-                        <span className="text-slate-400 ml-1">×{n.quantity}</span>
+                      <span key={i} className={`material-tag ${getQualityBgClass(mat?.quality)}`}>
+                        <span className={getQualityClass(mat?.quality)}>{n.item}</span>
+                        <span style={{color: '#94a3b8', marginLeft: '4px'}}>×{n.quantity}</span>
                       </span>
                     );
                   })}
@@ -917,28 +795,24 @@ export default function EliteTrader() {
         
         {/* Manual Entry Tab */}
         {activeTab === 'manual' && (
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 mb-4">
-            <h2 className="text-lg font-semibold mb-3 text-amber-400">Manual Material Needs</h2>
+          <div className="panel">
+            <h2 className="amber">Manual Material Needs</h2>
             
-            <div className="flex gap-2 mb-3">
-              <div className="flex-1 relative">
+            <div className="search-row">
+              <div className="search-container">
                 <input
                   type="text"
+                  className="search-input amber"
                   placeholder="Search materials..."
                   value={searchNeeded}
                   onChange={(e) => setSearchNeeded(e.target.value)}
-                  className="w-full bg-slate-800 rounded px-3 py-2 text-sm border border-slate-700 focus:border-amber-500 outline-none"
                 />
                 {searchNeeded && filteredNeeded.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 bg-slate-800 border border-slate-700 rounded mt-1 max-h-48 overflow-y-auto z-10">
+                  <div className="dropdown">
                     {filteredNeeded.map(m => (
-                      <button
-                        key={m.item}
-                        onClick={() => addToNeeds(m.item)}
-                        className="w-full text-left px-3 py-2 hover:bg-slate-700 text-sm border-b border-slate-700 last:border-0"
-                      >
-                        <span className={getQualityColor(m.quality)}>{m.item}</span>
-                        <span className="text-slate-500 text-xs ml-2">G{m.quality}</span>
+                      <button key={m.item} className="dropdown-item" onClick={() => addToNeeds(m.item)}>
+                        <span className={getQualityClass(m.quality)}>{m.item}</span>
+                        <span className="grade">G{m.quality}</span>
                       </button>
                     ))}
                   </div>
@@ -946,26 +820,26 @@ export default function EliteTrader() {
               </div>
               <input
                 type="number"
+                className="qty-input"
                 min="1"
                 value={newNeedQty}
                 onChange={(e) => setNewNeedQty(parseInt(e.target.value) || 1)}
-                className="w-16 bg-slate-800 rounded px-2 py-2 text-sm border border-slate-700 text-center"
               />
             </div>
             
-            <div className="space-y-1 max-h-48 overflow-y-auto">
+            <div className="list-container">
               {manualNeeds.map(need => {
                 const mat = getMaterial(need.item);
                 return (
-                  <div key={need.item} className={`flex items-center justify-between rounded px-3 py-2 border text-sm ${getQualityBg(mat?.quality)}`}>
-                    <span className={getQualityColor(mat?.quality)}>{need.item}</span>
-                    <span className="text-amber-400 font-mono">×{need.quantity}</span>
-                    <button onClick={() => removeFromNeeds(need.item)} className="text-red-400 hover:text-red-300 px-1">✕</button>
+                  <div key={need.item} className={`inv-item ${getQualityBgClass(mat?.quality)}`}>
+                    <span className={`name ${getQualityClass(mat?.quality)}`}>{need.item}</span>
+                    <span className="quantity amber">×{need.quantity}</span>
+                    <button className="btn-remove" onClick={() => removeFromNeeds(need.item)}>✕</button>
                   </div>
                 );
               })}
               {manualNeeds.length === 0 && (
-                <p className="text-slate-500 text-center py-4 text-sm">No manual needs added</p>
+                <p className="empty-message">No manual needs added</p>
               )}
             </div>
           </div>
@@ -973,28 +847,24 @@ export default function EliteTrader() {
         
         {/* Inventory Tab */}
         {activeTab === 'inventory' && (
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 mb-4">
-            <h2 className="text-lg font-semibold mb-3 text-blue-400">Your Inventory</h2>
+          <div className="panel">
+            <h2 className="blue">Your Inventory</h2>
             
-            <div className="flex gap-2 mb-3">
-              <div className="flex-1 relative">
+            <div className="search-row">
+              <div className="search-container">
                 <input
                   type="text"
+                  className="search-input"
                   placeholder="Search materials..."
                   value={searchOwned}
                   onChange={(e) => setSearchOwned(e.target.value)}
-                  className="w-full bg-slate-800 rounded px-3 py-2 text-sm border border-slate-700 focus:border-blue-500 outline-none"
                 />
                 {searchOwned && filteredOwned.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 bg-slate-800 border border-slate-700 rounded mt-1 max-h-48 overflow-y-auto z-10">
+                  <div className="dropdown">
                     {filteredOwned.map(m => (
-                      <button
-                        key={m.item}
-                        onClick={() => addToInventory(m.item)}
-                        className="w-full text-left px-3 py-2 hover:bg-slate-700 text-sm border-b border-slate-700 last:border-0"
-                      >
-                        <span className={getQualityColor(m.quality)}>{m.item}</span>
-                        <span className="text-slate-500 text-xs ml-2">G{m.quality}</span>
+                      <button key={m.item} className="dropdown-item" onClick={() => addToInventory(m.item)}>
+                        <span className={getQualityClass(m.quality)}>{m.item}</span>
+                        <span className="grade">G{m.quality}</span>
                       </button>
                     ))}
                   </div>
@@ -1002,63 +872,62 @@ export default function EliteTrader() {
               </div>
               <input
                 type="number"
+                className="qty-input"
                 min="1"
                 value={newQty}
                 onChange={(e) => setNewQty(parseInt(e.target.value) || 1)}
-                className="w-16 bg-slate-800 rounded px-2 py-2 text-sm border border-slate-700 text-center"
               />
             </div>
             
-            <div className="space-y-1 max-h-64 overflow-y-auto">
+            <div className="list-container tall">
               {inventory.map(inv => {
                 const mat = getMaterial(inv.item);
                 return (
-                  <div key={inv.item} className={`flex items-center justify-between rounded px-3 py-2 border text-sm ${getQualityBg(mat?.quality)}`}>
+                  <div key={inv.item} className={`inv-item ${getQualityBgClass(mat?.quality)}`}>
                     <div>
-                      <span className={getQualityColor(mat?.quality)}>{inv.item}</span>
-                      <span className="text-slate-500 text-xs ml-2">G{mat?.quality}</span>
+                      <span className={`name ${getQualityClass(mat?.quality)}`}>{inv.item}</span>
+                      <span className="grade-label">G{mat?.quality}</span>
                     </div>
-                    <span className="text-emerald-400 font-mono">×{inv.quantity}</span>
-                    <button onClick={() => removeFromInventory(inv.item)} className="text-red-400 hover:text-red-300 px-1">✕</button>
+                    <span className="quantity green">×{inv.quantity}</span>
+                    <button className="btn-remove" onClick={() => removeFromInventory(inv.item)}>✕</button>
                   </div>
                 );
               })}
               {inventory.length === 0 && (
-                <p className="text-slate-500 text-center py-4 text-sm">No materials in inventory</p>
+                <p className="empty-message">No materials in inventory</p>
               )}
             </div>
           </div>
         )}
         
         {/* Results */}
-        <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
-          <h2 className="text-xl font-semibold mb-4 text-orange-500">⚡ Optimization Results</h2>
+        <div className="panel results">
+          <h2>⚡ Optimization Results</h2>
           
           {allNeeds.length === 0 ? (
-            <p className="text-slate-500 text-center py-8">Select blueprints or add manual needs to see optimization results</p>
+            <p className="empty-message">Select blueprints or add manual needs to see optimization results</p>
           ) : (
             <>
               {/* Trade Sequence */}
               {result.trades.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium mb-2 text-purple-400 uppercase tracking-wide">Trade Sequence</h3>
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                <div className="trade-sequence">
+                  <h3 className="purple">Trade Sequence</h3>
+                  <div className="trade-list">
                     {result.trades.map((trade, i) => (
-                      <div key={i} className="bg-slate-800/50 rounded p-2 flex items-center gap-2 flex-wrap text-xs">
-                        <span className={`px-2 py-0.5 rounded font-medium ${
-                          trade.action === 'UPGRADE' ? 'bg-green-900/50 text-green-400' :
-                          trade.action === 'DOWNGRADE' ? 'bg-blue-900/50 text-blue-400' :
-                          trade.action === 'CROSS_TYPE' ? 'bg-purple-900/50 text-purple-400' :
-                          'bg-slate-700 text-slate-300'
+                      <div key={i} className="trade-item">
+                        <span className={`trade-badge ${
+                          trade.action === 'UPGRADE' ? 'upgrade' :
+                          trade.action === 'DOWNGRADE' ? 'downgrade' :
+                          trade.action === 'CROSS_TYPE' ? 'cross-type' : 'same-slot'
                         }`}>
-                          {trade.action}
+                          {trade.action.replace('_', ' ')}
                         </span>
-                        <span className="text-red-400">{trade.input.amount}×</span>
-                        <span className={getQualityColor(trade.input.quality)}>{trade.input.item}</span>
-                        <span className="text-slate-500">→</span>
-                        <span className="text-emerald-400">{trade.output.amount}×</span>
-                        <span className={getQualityColor(trade.output.quality)}>{trade.output.item}</span>
-                        <span className="text-slate-600 ml-auto">[{trade.ratio}]</span>
+                        <span className="input-amt">{trade.input.amount}×</span>
+                        <span className={getQualityClass(trade.input.quality)}>{trade.input.item}</span>
+                        <span className="arrow">→</span>
+                        <span className="output-amt">{trade.output.amount}×</span>
+                        <span className={getQualityClass(trade.output.quality)}>{trade.output.item}</span>
+                        <span className="ratio">[{trade.ratio}]</span>
                       </div>
                     ))}
                   </div>
@@ -1066,14 +935,14 @@ export default function EliteTrader() {
               )}
               
               {/* Summary */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="results-grid">
                 <div>
-                  <h3 className="text-sm font-medium mb-2 text-emerald-400 uppercase tracking-wide">✓ Fulfilled ({result.fulfilled.length})</h3>
-                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                  <h3 className="green">✓ Fulfilled ({result.fulfilled.length})</h3>
+                  <div className="result-list">
                     {result.fulfilled.map((f, i) => (
-                      <div key={i} className="bg-emerald-900/20 border border-emerald-900/50 rounded p-2 text-xs">
-                        <span className="text-emerald-300">{f.quantity}× {f.item}</span>
-                        <span className="text-slate-500 ml-2">
+                      <div key={i} className="result-item fulfilled">
+                        <span className="name">{f.quantity}× {f.item}</span>
+                        <span className="method">
                           {f.method === 'DIRECT' ? '(direct)' : 
                            f.method === 'SAME_SLOT' ? `(from ${f.from})` :
                            `(${f.consumed}× ${f.from})`}
@@ -1084,18 +953,18 @@ export default function EliteTrader() {
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium mb-2 text-red-400 uppercase tracking-wide">✗ Unfulfilled ({result.unfulfilled.length})</h3>
+                  <h3 className="red">✗ Unfulfilled ({result.unfulfilled.length})</h3>
                   {result.unfulfilled.length > 0 ? (
-                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                    <div className="result-list">
                       {result.unfulfilled.map((u, i) => (
-                        <div key={i} className="bg-red-900/20 border border-red-900/50 rounded p-2 text-xs">
-                          <span className="text-red-300">{u.quantity}× {u.item}</span>
-                          <div className="text-slate-500 mt-1 truncate">Source: {u.material?.source}</div>
+                        <div key={i} className="result-item unfulfilled">
+                          <span className="name">{u.quantity}× {u.item}</span>
+                          <div className="source">Source: {u.material?.source}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-emerald-400 text-sm">All needs fulfilled! 🎉</p>
+                    <p className="success-message">All needs fulfilled! 🎉</p>
                   )}
                 </div>
               </div>
@@ -1104,14 +973,16 @@ export default function EliteTrader() {
         </div>
         
         {/* Legend */}
-        <div className="mt-3 flex gap-4 justify-center text-xs text-slate-500">
-          <span className="text-gray-400">● G1</span>
-          <span className="text-green-400">● G2</span>
-          <span className="text-blue-400">● G3</span>
-          <span className="text-purple-400">● G4</span>
-          <span className="text-amber-400">● G5</span>
+        <div className="legend">
+          <span className="quality-1">● G1</span>
+          <span className="quality-2">● G2</span>
+          <span className="quality-3">● G3</span>
+          <span className="quality-4">● G4</span>
+          <span className="quality-5">● G5</span>
         </div>
       </div>
     </div>
   );
 }
+
+export default App;
