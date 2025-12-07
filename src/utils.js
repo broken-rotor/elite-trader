@@ -526,38 +526,50 @@ export function optimizeTrading(inventory, needs) {
       if (need.quantity <= 0) break;
       if (opt.source.quantity <= 0) continue;
 
+      // Calculate how much we can actually produce with whole number inputs
       const maxProducible = Math.floor(opt.source.quantity / opt.costPerUnit);
       const toProduce = Math.min(maxProducible, need.quantity);
 
       if (toProduce > 0) {
+        // Calculate the exact whole number of source materials needed
         const consumed = Math.ceil(toProduce * opt.costPerUnit);
-        opt.source.quantity -= consumed;
-        need.quantity -= toProduce;
-
-        const tradeSteps = generateTradeSteps(opt.srcMat, needMat, consumed, toProduce);
         
-        // Check if we should simplify the trade chain or show detailed steps
-        if (hasTradeRemainders(tradeSteps)) {
-          // Show detailed steps when there are remainders
-          trades.push(...tradeSteps);
-        } else {
-          // Simplify to direct conversion when no remainders
-          const simplified = simplifyTradeChain(tradeSteps);
-          if (simplified) {
-            trades.push(simplified);
-          } else {
-            trades.push(...tradeSteps);
-          }
-        }
+        // Ensure we don't consume more than we have
+        const actualConsumed = Math.min(consumed, opt.source.quantity);
+        
+        // Recalculate actual production based on whole number consumption
+        const actualProduced = Math.floor(actualConsumed / opt.costPerUnit);
+        
+        // Only proceed if we can actually produce something
+        if (actualProduced > 0 && actualConsumed <= opt.source.quantity) {
+          opt.source.quantity -= actualConsumed;
+          need.quantity -= actualProduced;
 
-        fulfilled.push({
-          item: need.item,
-          quantity: toProduce,
-          method: 'CONVERTED',
-          from: opt.source.item,
-          consumed,
-          material: needMat
-        });
+          const tradeSteps = generateTradeSteps(opt.srcMat, needMat, actualConsumed, actualProduced);
+          
+          // Check if we should simplify the trade chain or show detailed steps
+          if (hasTradeRemainders(tradeSteps)) {
+            // Show detailed steps when there are remainders
+            trades.push(...tradeSteps);
+          } else {
+            // Simplify to direct conversion when no remainders
+            const simplified = simplifyTradeChain(tradeSteps);
+            if (simplified) {
+              trades.push(simplified);
+            } else {
+              trades.push(...tradeSteps);
+            }
+          }
+
+          fulfilled.push({
+            item: need.item,
+            quantity: actualProduced,
+            method: 'CONVERTED',
+            from: opt.source.item,
+            consumed: actualConsumed,
+            material: needMat
+          });
+        }
       }
     }
 
