@@ -1,0 +1,303 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import ResultsPanel from './ResultsPanel';
+
+describe('ResultsPanel', () => {
+  test('displays empty state when no needs are provided', () => {
+    const result = { trades: [], fulfilled: [], unfulfilled: [] };
+
+    render(<ResultsPanel allNeeds={[]} result={result} />);
+
+    expect(screen.getByText('⚡ Optimization Results')).toBeInTheDocument();
+    expect(
+      screen.getByText('Select blueprints or add manual needs to see optimization results')
+    ).toBeInTheDocument();
+  });
+
+  test('does not display trade sequence when no trades exist', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 5 }];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.queryByText('Trade Sequence')).not.toBeInTheDocument();
+  });
+
+  test('displays trade sequence when trades exist', () => {
+    const allNeeds = [{ item: 'Carbon', quantity: 3 }];
+    const result = {
+      trades: [
+        {
+          action: 'UPGRADE',
+          input: { item: 'Iron', amount: 6, quality: 1 },
+          output: { item: 'Carbon', amount: 1, quality: 2 },
+          ratio: '6:1'
+        }
+      ],
+      fulfilled: [{ item: 'Carbon', quantity: 3, method: 'TRADED', from: 'Iron', consumed: 18 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('Trade Sequence')).toBeInTheDocument();
+    expect(screen.getByText('UPGRADE')).toBeInTheDocument();
+    expect(screen.getByText('6×')).toBeInTheDocument();
+    expect(screen.getByText('Iron')).toBeInTheDocument();
+    expect(screen.getByText('→')).toBeInTheDocument();
+    expect(screen.getByText('1×')).toBeInTheDocument();
+    expect(screen.getByText('Carbon')).toBeInTheDocument();
+    expect(screen.getByText('[6:1]')).toBeInTheDocument();
+  });
+
+  test('displays DOWNGRADE trade badge correctly', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 9 }];
+    const result = {
+      trades: [
+        {
+          action: 'DOWNGRADE',
+          input: { item: 'Carbon', amount: 3, quality: 2 },
+          output: { item: 'Iron', amount: 9, quality: 1 },
+          ratio: '1:3'
+        }
+      ],
+      fulfilled: [{ item: 'Iron', quantity: 9, method: 'TRADED', from: 'Carbon', consumed: 3 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    const badge = screen.getByText('DOWNGRADE');
+    expect(badge).toHaveClass('downgrade');
+  });
+
+  test('displays CROSS_TYPE trade badge correctly', () => {
+    const allNeeds = [{ item: 'Nickel', quantity: 1 }];
+    const result = {
+      trades: [
+        {
+          action: 'CROSS_TYPE',
+          input: { item: 'Iron', amount: 6, quality: 1 },
+          output: { item: 'Nickel', amount: 1, quality: 1 },
+          ratio: '6:1'
+        }
+      ],
+      fulfilled: [{ item: 'Nickel', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    const badge = screen.getByText('CROSS TYPE');
+    expect(badge).toHaveClass('cross-type');
+  });
+
+  test('displays fulfilled materials with DIRECT method', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 5 }];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('✓ Fulfilled (1)')).toBeInTheDocument();
+    expect(screen.getByText('5× Iron')).toBeInTheDocument();
+    expect(screen.getByText('(direct)')).toBeInTheDocument();
+  });
+
+  test('displays fulfilled materials with SAME_SLOT method', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 5 }];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Iron', quantity: 5, method: 'SAME_SLOT', from: 'Nickel' }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('5× Iron')).toBeInTheDocument();
+    expect(screen.getByText('(from Nickel)')).toBeInTheDocument();
+  });
+
+  test('displays fulfilled materials with trade method', () => {
+    const allNeeds = [{ item: 'Carbon', quantity: 1 }];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Carbon', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('1× Carbon')).toBeInTheDocument();
+    expect(screen.getByText('(6× Iron)')).toBeInTheDocument();
+  });
+
+  test('displays unfulfilled materials with sources', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 10 }];
+    const result = {
+      trades: [],
+      fulfilled: [],
+      unfulfilled: [
+        {
+          item: 'Iron',
+          quantity: 10,
+          material: { item: 'Iron', source: 'Surface prospecting' }
+        }
+      ]
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('✗ Unfulfilled (1)')).toBeInTheDocument();
+    expect(screen.getByText('10× Iron')).toBeInTheDocument();
+    expect(screen.getByText('Source: Surface prospecting')).toBeInTheDocument();
+  });
+
+  test('displays success message when all needs are fulfilled', () => {
+    const allNeeds = [{ item: 'Iron', quantity: 5 }];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('All needs fulfilled! 🎉')).toBeInTheDocument();
+  });
+
+  test('displays multiple fulfilled materials', () => {
+    const allNeeds = [
+      { item: 'Iron', quantity: 5 },
+      { item: 'Nickel', quantity: 3 }
+    ];
+    const result = {
+      trades: [],
+      fulfilled: [
+        { item: 'Iron', quantity: 5, method: 'DIRECT' },
+        { item: 'Nickel', quantity: 3, method: 'DIRECT' }
+      ],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('✓ Fulfilled (2)')).toBeInTheDocument();
+    expect(screen.getByText('5× Iron')).toBeInTheDocument();
+    expect(screen.getByText('3× Nickel')).toBeInTheDocument();
+  });
+
+  test('displays multiple unfulfilled materials', () => {
+    const allNeeds = [
+      { item: 'Iron', quantity: 10 },
+      { item: 'Nickel', quantity: 5 }
+    ];
+    const result = {
+      trades: [],
+      fulfilled: [],
+      unfulfilled: [
+        {
+          item: 'Iron',
+          quantity: 10,
+          material: { item: 'Iron', source: 'Surface prospecting' }
+        },
+        {
+          item: 'Nickel',
+          quantity: 5,
+          material: { item: 'Nickel', source: 'Mining' }
+        }
+      ]
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('✗ Unfulfilled (2)')).toBeInTheDocument();
+    expect(screen.getByText('10× Iron')).toBeInTheDocument();
+    expect(screen.getByText('Source: Surface prospecting')).toBeInTheDocument();
+    expect(screen.getByText('5× Nickel')).toBeInTheDocument();
+    expect(screen.getByText('Source: Mining')).toBeInTheDocument();
+  });
+
+  test('displays both fulfilled and unfulfilled materials', () => {
+    const allNeeds = [
+      { item: 'Iron', quantity: 5 },
+      { item: 'Nickel', quantity: 10 }
+    ];
+    const result = {
+      trades: [],
+      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      unfulfilled: [
+        {
+          item: 'Nickel',
+          quantity: 10,
+          material: { item: 'Nickel', source: 'Mining' }
+        }
+      ]
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    expect(screen.getByText('✓ Fulfilled (1)')).toBeInTheDocument();
+    expect(screen.getByText('5× Iron')).toBeInTheDocument();
+    expect(screen.getByText('✗ Unfulfilled (1)')).toBeInTheDocument();
+    expect(screen.getByText('10× Nickel')).toBeInTheDocument();
+  });
+
+  test('displays multiple trades in sequence', () => {
+    const allNeeds = [{ item: 'Carbon', quantity: 2 }];
+    const result = {
+      trades: [
+        {
+          action: 'UPGRADE',
+          input: { item: 'Iron', amount: 6, quality: 1 },
+          output: { item: 'Carbon', amount: 1, quality: 2 },
+          ratio: '6:1'
+        },
+        {
+          action: 'DOWNGRADE',
+          input: { item: 'Germanium', amount: 1, quality: 4 },
+          output: { item: 'Carbon', amount: 3, quality: 1 },
+          ratio: '1:3'
+        }
+      ],
+      fulfilled: [{ item: 'Carbon', quantity: 2, method: 'TRADED', from: 'Iron', consumed: 12 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    const trades = screen.getAllByText(/UPGRADE|DOWNGRADE/);
+    expect(trades).toHaveLength(2);
+  });
+
+  test('applies quality classes to materials in trades', () => {
+    const allNeeds = [{ item: 'Carbon', quantity: 1 }];
+    const result = {
+      trades: [
+        {
+          action: 'UPGRADE',
+          input: { item: 'Iron', amount: 6, quality: 1 },
+          output: { item: 'Carbon', amount: 1, quality: 2 },
+          ratio: '6:1'
+        }
+      ],
+      fulfilled: [{ item: 'Carbon', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
+      unfulfilled: []
+    };
+
+    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+
+    const ironElement = screen.getByText('Iron');
+    expect(ironElement).toHaveClass('quality-1');
+
+    const carbonElement = screen.getByText('Carbon');
+    expect(carbonElement).toHaveClass('quality-2');
+  });
+});
