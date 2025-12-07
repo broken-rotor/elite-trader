@@ -636,7 +636,7 @@ function calculateBlueprintCosts(selectedBlueprints) {
 
 function App() {
   const [activeTab, setActiveTab] = useState('blueprints');
-  const [inventorySubTab, setInventorySubTab] = useState('cargo'); // cargo, data, materials
+  const [inventorySubTab, setInventorySubTab] = useState('materials'); // materials, data
 
   // Load inventory from localStorage or use defaults
   const [inventory, setInventory] = useState(() => {
@@ -703,8 +703,12 @@ function App() {
   const result = useMemo(() => optimizeTrading(inventory, allNeeds), [inventory, allNeeds]);
   
   const filteredOwned = useMemo(() => {
-    return MATERIALS_DB.filter(m => m.item.toLowerCase().includes(searchOwned.toLowerCase())).slice(0, 8);
-  }, [searchOwned]);
+    return MATERIALS_DB.filter(m => {
+      const matchesSearch = m.item.toLowerCase().includes(searchOwned.toLowerCase());
+      const matchesCategory = getMaterialCategory(m) === inventorySubTab;
+      return matchesSearch && matchesCategory;
+    }).slice(0, 8);
+  }, [searchOwned, inventorySubTab]);
   
   const filteredNeeded = useMemo(() => {
     return MATERIALS_DB.filter(m => m.item.toLowerCase().includes(searchNeeded.toLowerCase())).slice(0, 8);
@@ -762,7 +766,7 @@ function App() {
   const getQualityBgClass = (quality) => `quality-bg-${quality}`;
 
   const getMaterialCategory = (material) => {
-    if (material.type.startsWith('Manufactured')) return 'cargo';
+    if (material.type.startsWith('Manufactured')) return 'materials';
     if (material.type.startsWith('Encoded')) return 'data';
     if (material.type.startsWith('Raw')) return 'materials';
     return 'other';
@@ -940,22 +944,16 @@ function App() {
             {/* Inventory Sub-tabs */}
             <div className="tabs" style={{marginBottom: '20px'}}>
               <button
-                className={`tab-btn ${inventorySubTab === 'cargo' ? 'active' : ''}`}
-                onClick={() => setInventorySubTab('cargo')}
+                className={`tab-btn ${inventorySubTab === 'materials' ? 'active' : ''}`}
+                onClick={() => setInventorySubTab('materials')}
               >
-                Cargo (Manufactured)
+                Materials
               </button>
               <button
                 className={`tab-btn ${inventorySubTab === 'data' ? 'active' : ''}`}
                 onClick={() => setInventorySubTab('data')}
               >
-                Data (Encoded)
-              </button>
-              <button
-                className={`tab-btn ${inventorySubTab === 'materials' ? 'active' : ''}`}
-                onClick={() => setInventorySubTab('materials')}
-              >
-                Materials (Raw)
+                Data
               </button>
             </div>
 
@@ -1013,7 +1011,7 @@ function App() {
               })}
               {filteredInventoryByCategory.length === 0 && (
                 <p className="empty-message">
-                  No {inventorySubTab === 'cargo' ? 'manufactured materials' : inventorySubTab === 'data' ? 'encoded data' : 'raw materials'} in inventory
+                  No {inventorySubTab === 'data' ? 'encoded data' : 'materials'} in inventory
                 </p>
               )}
             </div>
