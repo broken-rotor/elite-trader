@@ -582,25 +582,182 @@ export function optimizeTrading(inventory, needs) {
   };
 }
 
-export function generateTradeSteps(srcMat, targetMat, inputAmount) {
+export function generateTradeSteps(srcMat, targetMat, inputAmount, targetQuantity) {
+  // Find the optimal conversion path that respects integer constraints
+  return findOptimalConversionPath(srcMat, targetMat, inputAmount, targetQuantity);
+}
+
+// Find the optimal conversion path that produces exactly the target quantity
+// while keeping remainders at the highest possible grade
+function findOptimalConversionPath(srcMat, targetMat, availableAmount, targetQuantity) {
+  const steps = [];
+  
+  // If same material, no conversion needed
+  if (srcMat.item === targetMat.item) {
+    return steps;
+  }
+  
+  // Calculate the minimum amount needed for exact conversion
+  const conversionCost = getConversionCost(srcMat.type, srcMat.quality, targetMat.type, targetMat.quality);
+  const minNeededForTarget = targetQuantity * conversionCost;
+  
+  // If we don't have enough, use what we have
+  const actualInput = Math.min(availableAmount, minNeededForTarget);
+  
+  // Try different conversion strategies and pick the best one
+  const strategies = [
+    () => directConversionStrategy(srcMat, targetMat, actualInput, targetQuantity),
+    () => optimizedConversionStrategy(srcMat, targetMat, actualInput, targetQuantity)
+  ];
+  
+  let bestStrategy = null;
+  let bestEfficiency = -1;
+  
+  for (const strategy of strategies) {
+    try {
+      const result = strategy();
+      if (result && result.steps.length > 0) {
+        const efficiency = result.outputQuantity / result.inputUsed;
+        if (efficiency > bestEfficiency) {
+          bestEfficiency = efficiency;
+          bestStrategy = result;
+        }
+      }
+    } catch (e) {
+      // Strategy failed, continue to next
+    }
+  }
+  
+  return bestStrategy ? bestStrategy.steps : [];
+}
+
+// Direct conversion strategy - convert step by step
+function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantity) {
   const steps = [];
   const currentType = srcMat.type;
   let currentQuality = srcMat.quality;
   let currentAmount = inputAmount;
   let currentItem = srcMat.item;
-
+  
+  // First, handle quality changes within the same type
   while (currentQuality !== targetMat.quality) {
     if (currentQuality < targetMat.quality) {
+      // Upgrade: 6:1 ratio
       const output = Math.floor(currentAmount / TRADE_UP_COST);
+      if (output === 0) break; // Can't upgrade further
+      
       const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
       const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
-
+      
       steps.push({
         action: 'UPGRADE',
         input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
         output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
         ratio: '6:1'
       });
+      
+      currentAmount = output;
+      currentQuality++;
+      currentItem = targetItem;
+    } else {
+      // Downgrade: 1:3 ratio
+      const output = currentAmount * TRADE_DOWN_YIELD;
+      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
+      const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
+      
+      steps.push({
+        action: 'DOWNGRADE',
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
+        ratio: '1:3'
+      });
+      
+      currentAmount = output;
+      currentQuality--;
+      currentItem = targetItem;
+    }
+  }
+  
+  // Then handle type change if needed
+  if (currentType !== targetMat.type) {
+    const output = Math.floor(currentAmount / TRADE_ACROSS_COST);
+    if (output > 0) {
+      steps.push({
+        action: 'CROSS_TYPE',
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        output: { item: targetMat.item, type: targetMat.type, quality: targetMat.quality, amount: output },
+        ratio: '6:1'
+      });
+      currentAmount = output;
+    }
+  }
+  
+  return {
+    steps,
+    inputUsed: inputAmount,
+    outputQuantity: currentAmount
+  };
+}
+
+// Optimized conversion strategy - finds the most efficient path with integer constraints
+function optimizedConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity) {
+  
+  // If we need cross-category conversion, find the optimal intermediate grade
+  if (srcMat.type !== targetMat.type) {
+    return optimizedCrossCategoryConversion(srcMat, targetMat, inputAmount, targetQuantity);
+  }
+  
+  // Same category conversion - use direct strategy
+  return directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity);
+}
+
+// Handle cross-category conversions with integer constraints
+function optimizedCrossCategoryConversion(srcMat, targetMat, inputAmount, targetQuantity) {
+  
+  // Find the best intermediate quality to convert through
+  let bestPath = null;
+  let bestRemainder = -1;
+  
+  // Try converting through each possible quality level
+  for (let intermediateQuality = 1; intermediateQuality <= 5; intermediateQuality++) {
+    const pathResult = tryConversionPath(srcMat, targetMat, inputAmount, targetQuantity, intermediateQuality);
+    if (pathResult && pathResult.outputQuantity >= targetQuantity) {
+      // Calculate remainder value (higher quality remainders are better)
+      const remainderValue = pathResult.remainder * pathResult.remainderQuality;
+      if (remainderValue > bestRemainder) {
+        bestRemainder = remainderValue;
+        bestPath = pathResult;
+      }
+    }
+  }
+  
+  return bestPath || directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity);
+}
+
+// Try a specific conversion path through an intermediate quality
+function tryConversionPath(srcMat, targetMat, inputAmount, targetQuantity, intermediateQuality) {
+  const steps = [];
+  let currentAmount = inputAmount;
+  let currentQuality = srcMat.quality;
+  let currentType = srcMat.type;
+  let currentItem = srcMat.item;
+  
+  // Step 1: Convert to intermediate quality within same type
+  while (currentQuality !== intermediateQuality) {
+    if (currentQuality < intermediateQuality) {
+      const output = Math.floor(currentAmount / TRADE_UP_COST);
+      if (output === 0) return null; // Can't proceed
+      
+      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
+      const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
+      
+      steps.push({
+        action: 'UPGRADE',
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
+        ratio: '6:1'
+      });
+      
       currentAmount = output;
       currentQuality++;
       currentItem = targetItem;
@@ -608,30 +765,98 @@ export function generateTradeSteps(srcMat, targetMat, inputAmount) {
       const output = currentAmount * TRADE_DOWN_YIELD;
       const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
       const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
-
+      
       steps.push({
         action: 'DOWNGRADE',
         input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
         output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
         ratio: '1:3'
       });
+      
       currentAmount = output;
       currentQuality--;
       currentItem = targetItem;
     }
   }
-
-  if (currentType !== targetMat.type) {
-    const output = Math.floor(currentAmount / TRADE_ACROSS_COST);
-    steps.push({
-      action: 'CROSS_TYPE',
-      input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
-      output: { item: targetMat.item, type: targetMat.type, quality: targetMat.quality, amount: output },
-      ratio: '6:1'
-    });
+  
+  // Step 2: Calculate how much to convert across types
+  const crossTypeRatio = TRADE_ACROSS_COST; // 6:1
+  const qualityDifference = intermediateQuality - targetMat.quality;
+  
+  let finalConversionRatio = crossTypeRatio;
+  if (qualityDifference > 0) {
+    // Need to downgrade after cross-type conversion
+    finalConversionRatio = crossTypeRatio / Math.pow(TRADE_DOWN_YIELD, qualityDifference);
+  } else if (qualityDifference < 0) {
+    // Need to upgrade after cross-type conversion  
+    finalConversionRatio = crossTypeRatio * Math.pow(TRADE_UP_COST, -qualityDifference);
   }
-
-  return steps;
+  
+  const neededForTarget = Math.ceil(targetQuantity * finalConversionRatio);
+  const toConvert = Math.min(currentAmount, neededForTarget);
+  const remainder = currentAmount - toConvert;
+  
+  if (toConvert === 0) return null;
+  
+  // Step 3: Cross-type conversion
+  const crossOutput = Math.floor(toConvert / crossTypeRatio);
+  if (crossOutput === 0) return null;
+  
+  steps.push({
+    action: 'CROSS_TYPE',
+    input: { item: currentItem, type: currentType, quality: intermediateQuality, amount: toConvert },
+    output: { item: targetMat.item, type: targetMat.type, quality: intermediateQuality, amount: crossOutput },
+    ratio: '6:1'
+  });
+  
+  currentAmount = crossOutput;
+  currentType = targetMat.type;
+  currentItem = targetMat.item;
+  
+  // Step 4: Adjust quality to target if needed
+  while (currentQuality !== targetMat.quality) {
+    if (currentQuality < targetMat.quality) {
+      const output = Math.floor(currentAmount / TRADE_UP_COST);
+      if (output === 0) break;
+      
+      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
+      const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
+      
+      steps.push({
+        action: 'UPGRADE',
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
+        ratio: '6:1'
+      });
+      
+      currentAmount = output;
+      currentQuality++;
+      currentItem = targetItem;
+    } else {
+      const output = currentAmount * TRADE_DOWN_YIELD;
+      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
+      const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
+      
+      steps.push({
+        action: 'DOWNGRADE',
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
+        ratio: '1:3'
+      });
+      
+      currentAmount = output;
+      currentQuality--;
+      currentItem = targetItem;
+    }
+  }
+  
+  return {
+    steps,
+    inputUsed: inputAmount,
+    outputQuantity: currentAmount,
+    remainder,
+    remainderQuality: intermediateQuality
+  };
 }
 
 export function calculateBlueprintCosts(selectedBlueprints) {
