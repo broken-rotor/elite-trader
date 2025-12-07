@@ -281,7 +281,7 @@ describe('generateTradeSteps', () => {
     const srcMat = getMaterial('Carbon');
     const targetMat = getMaterial('Vanadium');
 
-    const steps = generateTradeSteps(srcMat, targetMat, 6);
+    const steps = generateTradeSteps(srcMat, targetMat, 6, 1);
 
     expect(steps).toHaveLength(1);
     expect(steps[0].action).toBe('UPGRADE');
@@ -293,7 +293,7 @@ describe('generateTradeSteps', () => {
     const srcMat = getMaterial('Vanadium');
     const targetMat = getMaterial('Carbon');
 
-    const steps = generateTradeSteps(srcMat, targetMat, 1);
+    const steps = generateTradeSteps(srcMat, targetMat, 1, 3);
 
     expect(steps).toHaveLength(1);
     expect(steps[0].action).toBe('DOWNGRADE');
@@ -306,7 +306,7 @@ describe('generateTradeSteps', () => {
     const srcMat = getMaterial('Iron');
     const targetMat = getMaterial('Nickel');
 
-    const steps = generateTradeSteps(srcMat, targetMat, 6);
+    const steps = generateTradeSteps(srcMat, targetMat, 6, 1);
 
     expect(steps).toHaveLength(1);
     const crossTypeStep = steps.find(s => s.action === 'CROSS_TYPE');
@@ -320,7 +320,7 @@ describe('generateTradeSteps', () => {
     const srcMat = getMaterial('Iron');
     const targetMat = getMaterial('Chromium');
 
-    const steps = generateTradeSteps(srcMat, targetMat, 36);
+    const steps = generateTradeSteps(srcMat, targetMat, 36, 1);
 
     // Should have upgrade step (quality 1 -> 2) and cross-type step (Raw material 4 -> Raw material 2)
     expect(steps.length).toBeGreaterThan(1);
@@ -338,7 +338,7 @@ describe('generateTradeSteps', () => {
       source: 'Test'
     };
 
-    const steps = generateTradeSteps(srcMat, targetMat, 6);
+    const steps = generateTradeSteps(srcMat, targetMat, 6, 1);
 
     const crossTypeStep = steps.find(s => s.action === 'CROSS_TYPE');
     expect(crossTypeStep).toBeDefined();
