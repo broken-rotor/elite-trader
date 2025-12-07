@@ -22,29 +22,68 @@ function ResultsPanel({ allNeeds, result }) {
       {result.trades.length > 0 && (
         <div className="trade-sequence">
           <h3 className="purple">Trade Sequence</h3>
-          <div className="trade-list">
-            {result.trades.map((trade, i) => (
-              <div key={i} className="trade-item">
-                <span className={`trade-badge ${
-                  trade.action === 'UPGRADE' ? 'upgrade' :
-                  trade.action === 'DOWNGRADE' ? 'downgrade' :
-                  trade.action === 'CROSS_TYPE' ? 'cross-type' : 'same-slot'
-                }`}>
-                  {trade.action.replace('_', ' ')}
-                </span>
-                <span className="input-amt">{trade.input.amount}×</span>
-                <span className={getQualityClass(trade.input.quality)}>
-                  {trade.input.item}
-                </span>
-                <span className="arrow">→</span>
-                <span className="output-amt">{trade.output.amount}×</span>
-                <span className={getQualityClass(trade.output.quality)}>
-                  {trade.output.item}
-                </span>
-                <span className="ratio">[{trade.ratio}]</span>
+          {result.groupedTrades && Object.keys(result.groupedTrades).length > 0 ? (
+            // Show grouped trades by base type
+            Object.entries(result.groupedTrades).map(([baseType, trades]) => (
+              <div key={baseType} className="trade-group">
+                <h4 className={`trade-group-header ${baseType.toLowerCase()}`}>
+                  {baseType === 'Raw' && '⛏️ Raw Materials'}
+                  {baseType === 'Manufactured' && '🔧 Manufactured Materials'}
+                  {baseType === 'Encoded' && '💾 Encoded Data'}
+                </h4>
+                <div className="trade-list">
+                  {trades.map((trade, i) => (
+                    <div key={i} className="trade-item">
+                      <span className={`trade-badge ${
+                        trade.action === 'UPGRADE' ? 'upgrade' :
+                        trade.action === 'DOWNGRADE' ? 'downgrade' :
+                        trade.action === 'CROSS_TYPE' ? 'cross-type' :
+                        trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                      }`}>
+                        {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
+                      </span>
+                      <span className="input-amt">{trade.input.amount}×</span>
+                      <span className={getQualityClass(trade.input.quality)}>
+                        {trade.input.item}
+                      </span>
+                      <span className="arrow">→</span>
+                      <span className="output-amt">{trade.output.amount}×</span>
+                      <span className={getQualityClass(trade.output.quality)}>
+                        {trade.output.item}
+                      </span>
+                      <span className="ratio">[{trade.ratio}]</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            // Fallback to ungrouped trades if grouping failed
+            <div className="trade-list">
+              {result.trades.map((trade, i) => (
+                <div key={i} className="trade-item">
+                  <span className={`trade-badge ${
+                    trade.action === 'UPGRADE' ? 'upgrade' :
+                    trade.action === 'DOWNGRADE' ? 'downgrade' :
+                    trade.action === 'CROSS_TYPE' ? 'cross-type' :
+                    trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                  }`}>
+                    {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
+                  </span>
+                  <span className="input-amt">{trade.input.amount}×</span>
+                  <span className={getQualityClass(trade.input.quality)}>
+                    {trade.input.item}
+                  </span>
+                  <span className="arrow">→</span>
+                  <span className="output-amt">{trade.output.amount}×</span>
+                  <span className={getQualityClass(trade.output.quality)}>
+                    {trade.output.item}
+                  </span>
+                  <span className="ratio">[{trade.ratio}]</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

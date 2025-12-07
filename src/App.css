@@ -448,10 +448,54 @@
   color: #cbd5e1;
 }
 
+.trade-badge.direct-conversion {
+  background-color: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
 .trade-item .input-amt { color: #f87171; }
 .trade-item .output-amt { color: #34d399; }
 .trade-item .arrow { color: #64748b; }
 .trade-item .ratio { color: #475569; margin-left: auto; }
+
+/* Trade groups */
+.trade-group {
+  margin-bottom: 16px;
+}
+
+.trade-group-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+
+.trade-group-header.raw {
+  background-color: rgba(120, 53, 15, 0.2);
+  color: #fbbf24;
+  border-left-color: #fbbf24;
+}
+
+.trade-group-header.manufactured {
+  background-color: rgba(30, 58, 138, 0.2);
+  color: #60a5fa;
+  border-left-color: #60a5fa;
+}
+
+.trade-group-header.encoded {
+  background-color: rgba(88, 28, 135, 0.2);
+  color: #c084fc;
+  border-left-color: #c084fc;
+}
+
+.trade-group .trade-list {
+  margin-left: 12px;
+  max-height: 150px;
+  overflow-y: auto;
+}
 
 /* Results grid */
 .results-grid {
