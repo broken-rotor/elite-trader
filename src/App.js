@@ -701,7 +701,14 @@ function App() {
   }, [manualNeeds, blueprintNeeds]);
   
   const result = useMemo(() => optimizeTrading(inventory, allNeeds), [inventory, allNeeds]);
-  
+
+  const getMaterialCategory = (material) => {
+    if (material.type.startsWith('Manufactured')) return 'materials';
+    if (material.type.startsWith('Encoded')) return 'data';
+    if (material.type.startsWith('Raw')) return 'materials';
+    return 'other';
+  };
+
   const filteredOwned = useMemo(() => {
     return MATERIALS_DB.filter(m => {
       const matchesSearch = m.item.toLowerCase().includes(searchOwned.toLowerCase());
@@ -764,13 +771,6 @@ function App() {
   
   const getQualityClass = (quality) => `quality-${quality}`;
   const getQualityBgClass = (quality) => `quality-bg-${quality}`;
-
-  const getMaterialCategory = (material) => {
-    if (material.type.startsWith('Manufactured')) return 'materials';
-    if (material.type.startsWith('Encoded')) return 'data';
-    if (material.type.startsWith('Raw')) return 'materials';
-    return 'other';
-  };
 
   const filteredInventoryByCategory = useMemo(() => {
     return inventory
