@@ -1,6 +1,7 @@
 import {
   getMaterial,
   getMaterialsAtTypeQuality,
+  getMainCategory,
   getConversionCost,
   optimizeTrading,
   generateTradeSteps,
@@ -15,7 +16,7 @@ describe('getMaterial', () => {
     const material = getMaterial('Iron');
     expect(material).toBeDefined();
     expect(material.item).toBe('Iron');
-    expect(material.type).toBe('Raw (Raw material 1)');
+    expect(material.type).toBe('Raw (Raw material 4)');
     expect(material.quality).toBe(1);
   });
 
@@ -61,6 +62,30 @@ describe('getMaterialsAtTypeQuality', () => {
   });
 });
 
+describe('getMainCategory', () => {
+  test('extracts Encoded category', () => {
+    expect(getMainCategory('Encoded (Data archives)')).toBe('Encoded');
+    expect(getMainCategory('Encoded (Emission data)')).toBe('Encoded');
+    expect(getMainCategory('Encoded (Wake scans)')).toBe('Encoded');
+  });
+
+  test('extracts Manufactured category', () => {
+    expect(getMainCategory('Manufactured (Alloys)')).toBe('Manufactured');
+    expect(getMainCategory('Manufactured (Capacitors)')).toBe('Manufactured');
+    expect(getMainCategory('Manufactured (Chemical)')).toBe('Manufactured');
+  });
+
+  test('extracts Raw category', () => {
+    expect(getMainCategory('Raw (Raw material 1)')).toBe('Raw');
+    expect(getMainCategory('Raw (Raw material 2)')).toBe('Raw');
+    expect(getMainCategory('Raw (Raw material 3)')).toBe('Raw');
+  });
+
+  test('handles unknown types as fallback', () => {
+    expect(getMainCategory('Unknown Type')).toBe('Unknown Type');
+  });
+});
+
 describe('getConversionCost', () => {
   test('same type and quality costs 1', () => {
     const cost = getConversionCost('Manufactured (Alloys)', 1, 'Manufactured (Alloys)', 1);
@@ -87,18 +112,42 @@ describe('getConversionCost', () => {
     expect(cost).toBeCloseTo(1 / (TRADE_DOWN_YIELD * TRADE_DOWN_YIELD));
   });
 
-  test('cross-type same quality costs 6', () => {
+  test('cross-category trades are impossible (Manufactured to Encoded)', () => {
     const cost = getConversionCost('Manufactured (Alloys)', 1, 'Encoded (Data archives)', 1);
+    expect(cost).toBe(Infinity);
+  });
+
+  test('cross-category trades are impossible (Raw to Encoded)', () => {
+    const cost = getConversionCost('Raw (Raw material 1)', 1, 'Encoded (Data archives)', 1);
+    expect(cost).toBe(Infinity);
+  });
+
+  test('cross-category trades are impossible (Encoded to Manufactured)', () => {
+    const cost = getConversionCost('Encoded (Data archives)', 1, 'Manufactured (Alloys)', 1);
+    expect(cost).toBe(Infinity);
+  });
+
+  test('within-category cross-type at same quality costs 6 (Encoded subcategories)', () => {
+    // Both are Encoded, but different subcategories
+    const cost = getConversionCost('Encoded (Data archives)', 1, 'Encoded (Emission data)', 1);
     expect(cost).toBe(TRADE_ACROSS_COST);
   });
 
-  test('cross-type and upgrade costs 6 * 6 = 36', () => {
-    const cost = getConversionCost('Manufactured (Alloys)', 1, 'Encoded (Data archives)', 2);
+  test('within-category cross-type at same quality costs 6 (Raw subcategories)', () => {
+    // Both are Raw, but different subcategories (Raw material 1 vs Raw material 2)
+    const cost = getConversionCost('Raw (Raw material 1)', 1, 'Raw (Raw material 2)', 1);
+    expect(cost).toBe(TRADE_ACROSS_COST);
+  });
+
+  test('within-category cross-type and upgrade costs 6 * 6 = 36', () => {
+    // Both Encoded, crossing subcategories and upgrading quality
+    const cost = getConversionCost('Encoded (Data archives)', 1, 'Encoded (Emission data)', 2);
     expect(cost).toBe(TRADE_ACROSS_COST * TRADE_UP_COST);
   });
 
-  test('cross-type and downgrade costs 6 / 3 = 2', () => {
-    const cost = getConversionCost('Manufactured (Alloys)', 2, 'Encoded (Data archives)', 1);
+  test('within-category cross-type and downgrade costs 6 / 3 = 2', () => {
+    // Both Encoded, crossing subcategories and downgrading quality
+    const cost = getConversionCost('Encoded (Data archives)', 2, 'Encoded (Emission data)', 1);
     expect(cost).toBe(TRADE_ACROSS_COST / TRADE_DOWN_YIELD);
   });
 });
@@ -187,12 +236,50 @@ describe('optimizeTrading', () => {
     expect(result.fulfilled.length).toBeGreaterThanOrEqual(2);
     expect(result.unfulfilled.length).toBeGreaterThanOrEqual(1);
   });
+
+  test('cannot fulfill cross-category needs (Raw inventory, Encoded need)', () => {
+    const inventory = [{ item: 'Iron', quantity: 1000 }];
+    const needs = [{ item: 'Anomalous Bulk Scan Data', quantity: 1 }];
+
+    const result = optimizeTrading(inventory, needs);
+
+    // Should be unfulfilled because you can't trade Raw for Encoded
+    expect(result.fulfilled).toHaveLength(0);
+    expect(result.unfulfilled).toHaveLength(1);
+    expect(result.unfulfilled[0].item).toBe('Anomalous Bulk Scan Data');
+  });
+
+  test('cannot fulfill cross-category needs (Manufactured inventory, Raw need)', () => {
+    const inventory = [{ item: 'Salvaged Alloys', quantity: 1000 }];
+    const needs = [{ item: 'Iron', quantity: 1 }];
+
+    const result = optimizeTrading(inventory, needs);
+
+    // Should be unfulfilled because you can't trade Manufactured for Raw
+    expect(result.fulfilled).toHaveLength(0);
+    expect(result.unfulfilled).toHaveLength(1);
+    expect(result.unfulfilled[0].item).toBe('Iron');
+  });
+
+  test('can fulfill within-category cross-type needs (different Raw subcategories)', () => {
+    // Iron is Raw (Raw material 1) quality 1
+    // Nickel is Raw (Raw material 1) quality 2
+    const inventory = [{ item: 'Iron', quantity: 6 }];
+    const needs = [{ item: 'Nickel', quantity: 1 }];
+
+    const result = optimizeTrading(inventory, needs);
+
+    // Should be fulfilled - both are Raw materials
+    expect(result.fulfilled.length).toBeGreaterThan(0);
+    expect(result.unfulfilled).toHaveLength(0);
+  });
 });
 
 describe('generateTradeSteps', () => {
-  test('generates upgrade step for quality increase', () => {
-    const srcMat = getMaterial('Iron');
-    const targetMat = getMaterial('Nickel');
+  test('generates upgrade step for quality increase within same type', () => {
+    // Carbon and Vanadium are both Raw (Raw material 1), quality 1 and 2
+    const srcMat = getMaterial('Carbon');
+    const targetMat = getMaterial('Vanadium');
 
     const steps = generateTradeSteps(srcMat, targetMat, 6);
 
@@ -201,9 +288,10 @@ describe('generateTradeSteps', () => {
     expect(steps[0].ratio).toBe('6:1');
   });
 
-  test('generates downgrade step for quality decrease', () => {
-    const srcMat = getMaterial('Nickel');
-    const targetMat = getMaterial('Iron');
+  test('generates downgrade step for quality decrease within same type', () => {
+    // Vanadium and Carbon are both Raw (Raw material 1), quality 2 and 1
+    const srcMat = getMaterial('Vanadium');
+    const targetMat = getMaterial('Carbon');
 
     const steps = generateTradeSteps(srcMat, targetMat, 1);
 
@@ -212,26 +300,49 @@ describe('generateTradeSteps', () => {
     expect(steps[0].ratio).toBe('1:3');
   });
 
-  test('generates cross-type step when types differ', () => {
+  test('generates cross-type step when subcategories differ (within same main category)', () => {
+    // Iron is Raw (Raw material 4) quality 1 and Nickel is Raw (Raw material 5) quality 1
+    // Both are Raw materials at same quality, so this is a cross-type trade
     const srcMat = getMaterial('Iron');
-    const targetMat = getMaterial('Anomalous Bulk Scan Data');
+    const targetMat = getMaterial('Nickel');
+
+    const steps = generateTradeSteps(srcMat, targetMat, 6);
+
+    expect(steps).toHaveLength(1);
+    const crossTypeStep = steps.find(s => s.action === 'CROSS_TYPE');
+    expect(crossTypeStep).toBeDefined();
+    expect(crossTypeStep.ratio).toBe('6:1');
+  });
+
+  test('generates multiple steps for quality change then cross-type within same category', () => {
+    // Iron is Raw (Raw material 4) quality 1, Chromium is Raw (Raw material 2) quality 2
+    // Both are Raw materials, so this requires upgrade (1->2) then cross-type (Raw material 4 -> Raw material 2)
+    const srcMat = getMaterial('Iron');
+    const targetMat = getMaterial('Chromium');
+
+    const steps = generateTradeSteps(srcMat, targetMat, 36);
+
+    // Should have upgrade step (quality 1 -> 2) and cross-type step (Raw material 4 -> Raw material 2)
+    expect(steps.length).toBeGreaterThan(1);
+    expect(steps.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('generates steps for within-category cross-type trade (Encoded subcategories)', () => {
+    // Anomalous Bulk Scan Data is Encoded (Data archives) quality 1
+    // We need to find another Encoded material at quality 1 but different subtype
+    const srcMat = getMaterial('Anomalous Bulk Scan Data'); // Encoded (Data archives) Q1
+    const targetMat = {
+      item: 'Test Emission Data',
+      type: 'Encoded (Emission data)',
+      quality: 1,
+      source: 'Test'
+    };
 
     const steps = generateTradeSteps(srcMat, targetMat, 6);
 
     const crossTypeStep = steps.find(s => s.action === 'CROSS_TYPE');
     expect(crossTypeStep).toBeDefined();
     expect(crossTypeStep.ratio).toBe('6:1');
-  });
-
-  test('generates multiple steps for large quality differences', () => {
-    const srcMat = getMaterial('Iron');
-    const targetMat = getMaterial('Chromium');
-
-    const steps = generateTradeSteps(srcMat, targetMat, 36);
-
-    expect(steps.length).toBeGreaterThan(1);
-    // Steps might include CROSS_TYPE since Iron and Chromium have different types
-    expect(steps.length).toBeGreaterThanOrEqual(2);
   });
 });
 
