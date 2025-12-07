@@ -533,37 +533,58 @@ export function optimizeTrading(inventory, needs) {
       if (toProduce > 0) {
         // Calculate the exact whole number of source materials needed
         const consumed = Math.ceil(toProduce * opt.costPerUnit);
-        
+
         // Ensure we don't consume more than we have
         const actualConsumed = Math.min(consumed, opt.source.quantity);
-        
+
         // Recalculate actual production based on whole number consumption
         const actualProduced = Math.floor(actualConsumed / opt.costPerUnit);
-        
+
         // Only proceed if we can actually produce something
         if (actualProduced > 0 && actualConsumed <= opt.source.quantity) {
-          opt.source.quantity -= actualConsumed;
-          need.quantity -= actualProduced;
+          // Calculate how much we actually fulfill vs leftover
+          const toFulfill = Math.min(actualProduced, need.quantity);
+          const leftover = actualProduced - toFulfill;
 
-          const tradeSteps = generateTradeSteps(opt.srcMat, needMat, actualConsumed, actualProduced);
-          
-          // Check if we should simplify the trade chain or show detailed steps
-          if (hasTradeRemainders(tradeSteps)) {
-            // Show detailed steps when there are remainders
-            trades.push(...tradeSteps);
-          } else {
-            // Simplify to direct conversion when no remainders
-            const simplified = simplifyTradeChain(tradeSteps);
-            if (simplified) {
-              trades.push(simplified);
+          // Track original available amount before consuming
+          const originalAvailable = opt.source.quantity;
+
+          opt.source.quantity -= actualConsumed;
+          need.quantity -= toFulfill;
+
+          // Add leftover materials back to inventory
+          if (leftover > 0) {
+            const existingLeftover = inv.find(i => i.item === needMat.item);
+            if (existingLeftover) {
+              existingLeftover.quantity += leftover;
             } else {
-              trades.push(...tradeSteps);
+              inv.push({ item: needMat.item, quantity: leftover });
+            }
+          }
+
+          const tradeSteps = generateTradeSteps(opt.srcMat, needMat, originalAvailable, actualProduced, need.quantity + toFulfill);
+
+          // Always show detailed steps - don't simplify multi-step conversions
+          // This allows users to see the full conversion path
+          trades.push(...tradeSteps);
+
+          // Add any remainders from intermediate conversion steps back to inventory
+          // Skip the first step's remainder as it's already tracked in opt.source.quantity
+          for (let i = 1; i < tradeSteps.length; i++) {
+            const step = tradeSteps[i];
+            if (step.remainder && step.remainder.amount > 0) {
+              const existingRemainder = inv.find(item => item.item === step.remainder.item);
+              if (existingRemainder) {
+                existingRemainder.quantity += step.remainder.amount;
+              } else {
+                inv.push({ item: step.remainder.item, quantity: step.remainder.amount });
+              }
             }
           }
 
           fulfilled.push({
             item: need.item,
-            quantity: actualProduced,
+            quantity: toFulfill,
             method: 'CONVERTED',
             from: opt.source.item,
             consumed: actualConsumed,
@@ -594,83 +615,65 @@ export function optimizeTrading(inventory, needs) {
   };
 }
 
-export function generateTradeSteps(srcMat, targetMat, inputAmount, targetQuantity) {
+export function generateTradeSteps(srcMat, targetMat, inputAmount, targetQuantity, totalNeeded) {
   // Find the optimal conversion path that respects integer constraints
-  return findOptimalConversionPath(srcMat, targetMat, inputAmount, targetQuantity);
+  return findOptimalConversionPath(srcMat, targetMat, inputAmount, targetQuantity, totalNeeded);
 }
 
 // Find the optimal conversion path that produces exactly the target quantity
 // while keeping remainders at the highest possible grade
-function findOptimalConversionPath(srcMat, targetMat, availableAmount, targetQuantity) {
+function findOptimalConversionPath(srcMat, targetMat, availableAmount, targetQuantity, totalNeeded) {
   const steps = [];
-  
+
   // If same material, no conversion needed
   if (srcMat.item === targetMat.item) {
     return steps;
   }
-  
-  // Calculate the minimum amount needed for exact conversion
-  const conversionCost = getConversionCost(srcMat.type, srcMat.quality, targetMat.type, targetMat.quality);
-  const minNeededForTarget = targetQuantity * conversionCost;
-  
-  // If we don't have enough, use what we have
-  const actualInput = Math.min(availableAmount, minNeededForTarget);
-  
-  // Try different conversion strategies and pick the best one
-  const strategies = [
-    () => directConversionStrategy(srcMat, targetMat, actualInput, targetQuantity),
-    () => optimizedConversionStrategy(srcMat, targetMat, actualInput, targetQuantity)
-  ];
-  
-  let bestStrategy = null;
-  let bestEfficiency = -1;
-  
-  for (const strategy of strategies) {
-    try {
-      const result = strategy();
-      if (result && result.steps.length > 0) {
-        const efficiency = result.outputQuantity / result.inputUsed;
-        if (efficiency > bestEfficiency) {
-          bestEfficiency = efficiency;
-          bestStrategy = result;
-        }
-      }
-    } catch (e) {
-      // Strategy failed, continue to next
-    }
-  }
-  
-  return bestStrategy ? bestStrategy.steps : [];
+
+  // Use direct conversion strategy for better control
+  const result = directConversionStrategy(srcMat, targetMat, availableAmount, targetQuantity, totalNeeded);
+
+  return result ? result.steps : [];
 }
 
 // Direct conversion strategy - convert step by step
-function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantity) {
+function directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity, _totalNeeded) {
   const steps = [];
   const currentType = srcMat.type;
   let currentQuality = srcMat.quality;
   let currentAmount = inputAmount;
   let currentItem = srcMat.item;
-  
+
+  // Calculate how much we need at each quality level for cross-type conversions
+  const needsCrossType = currentType !== targetMat.type;
+  let neededAtTargetQuality = targetQuantity;
+
+  if (needsCrossType) {
+    // Work backwards to figure out how much we need at the target quality level
+    // before the cross-type conversion
+    neededAtTargetQuality = targetQuantity * TRADE_ACROSS_COST;
+  }
+
   // First, handle quality changes within the same type
   while (currentQuality !== targetMat.quality) {
     if (currentQuality < targetMat.quality) {
       // Upgrade: 6:1 ratio
       const output = Math.floor(currentAmount / TRADE_UP_COST);
       if (output === 0) break; // Can't upgrade further
-      
+
       const consumed = output * TRADE_UP_COST;
       const remainder = currentAmount - consumed;
-      
+
       const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
       const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
-      
+
       const step = {
         action: 'UPGRADE',
         input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
         output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
         ratio: '6:1'
       };
-      
+
       // Add remainder information if there is one
       if (remainder > 0) {
         step.remainder = {
@@ -680,45 +683,84 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantit
           amount: remainder
         };
       }
-      
+
       steps.push(step);
-      
+
       currentAmount = output;
       currentQuality++;
       currentItem = targetItem;
     } else {
       // Downgrade: 1:3 ratio
-      const output = currentAmount * TRADE_DOWN_YIELD;
+      let amountToConvert = currentAmount;
+
+      // Calculate how much we need to convert based on target
+      if (currentQuality - 1 === targetMat.quality) {
+        if (currentType === targetMat.type) {
+          // Same type, just need enough for target quantity
+          const neededAtCurrentQuality = Math.ceil(targetQuantity / TRADE_DOWN_YIELD);
+          amountToConvert = Math.min(currentAmount, neededAtCurrentQuality);
+        } else if (needsCrossType) {
+          // Different type, need enough for cross-type conversion
+          const neededAtCurrentQuality = Math.ceil(neededAtTargetQuality / TRADE_DOWN_YIELD);
+          amountToConvert = Math.min(currentAmount, neededAtCurrentQuality);
+        }
+      } else if (needsCrossType && currentType !== targetMat.type) {
+        // Multi-step downgrade for cross-type - calculate how much we need at next level
+        const qualityStepsRemaining = currentQuality - targetMat.quality;
+        const multiplierForNextStep = Math.pow(TRADE_DOWN_YIELD, qualityStepsRemaining - 1);
+        const neededAtNextQuality = Math.ceil(neededAtTargetQuality / multiplierForNextStep);
+        const neededAtCurrentQuality = Math.ceil(neededAtNextQuality / TRADE_DOWN_YIELD);
+        amountToConvert = Math.min(currentAmount, neededAtCurrentQuality);
+      }
+
+      const output = amountToConvert * TRADE_DOWN_YIELD;
       const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
       const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
-      
-      steps.push({
+
+      const step = {
         action: 'DOWNGRADE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: amountToConvert },
         output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
         ratio: '1:3'
-      });
-      
+      };
+
+      // Track remainder if we didn't convert everything
+      const remainder = currentAmount - amountToConvert;
+      if (remainder > 0) {
+        step.remainder = {
+          item: currentItem,
+          type: currentType,
+          quality: currentQuality,
+          amount: remainder
+        };
+      }
+
+      steps.push(step);
+
       currentAmount = output;
       currentQuality--;
       currentItem = targetItem;
     }
   }
-  
+
   // Then handle type change if needed
   if (currentType !== targetMat.type) {
-    const output = Math.floor(currentAmount / TRADE_ACROSS_COST);
+    // Calculate how much we need to convert for cross-type
+    const neededInput = Math.min(currentAmount, targetQuantity * TRADE_ACROSS_COST);
+    const actualInput = Math.floor(neededInput / TRADE_ACROSS_COST) * TRADE_ACROSS_COST;
+
+    const output = Math.floor(actualInput / TRADE_ACROSS_COST);
     if (output > 0) {
       const consumed = output * TRADE_ACROSS_COST;
       const remainder = currentAmount - consumed;
-      
+
       const step = {
         action: 'CROSS_TYPE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
+        input: { item: currentItem, type: currentType, quality: currentQuality, amount: actualInput },
         output: { item: targetMat.item, type: targetMat.type, quality: targetMat.quality, amount: output },
         ratio: '6:1'
       };
-      
+
       // Add remainder information if there is one
       if (remainder > 0) {
         step.remainder = {
@@ -728,12 +770,12 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantit
           amount: remainder
         };
       }
-      
+
       steps.push(step);
       currentAmount = output;
     }
   }
-  
+
   return {
     steps,
     inputUsed: inputAmount,
@@ -741,165 +783,6 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantit
   };
 }
 
-// Optimized conversion strategy - finds the most efficient path with integer constraints
-function optimizedConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity) {
-  
-  // If we need cross-category conversion, find the optimal intermediate grade
-  if (srcMat.type !== targetMat.type) {
-    return optimizedCrossCategoryConversion(srcMat, targetMat, inputAmount, targetQuantity);
-  }
-  
-  // Same category conversion - use direct strategy
-  return directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity);
-}
-
-// Handle cross-category conversions with integer constraints
-function optimizedCrossCategoryConversion(srcMat, targetMat, inputAmount, targetQuantity) {
-  
-  // Find the best intermediate quality to convert through
-  let bestPath = null;
-  let bestRemainder = -1;
-  
-  // Try converting through each possible quality level
-  for (let intermediateQuality = 1; intermediateQuality <= 5; intermediateQuality++) {
-    const pathResult = tryConversionPath(srcMat, targetMat, inputAmount, targetQuantity, intermediateQuality);
-    if (pathResult && pathResult.outputQuantity >= targetQuantity) {
-      // Calculate remainder value (higher quality remainders are better)
-      const remainderValue = pathResult.remainder * pathResult.remainderQuality;
-      if (remainderValue > bestRemainder) {
-        bestRemainder = remainderValue;
-        bestPath = pathResult;
-      }
-    }
-  }
-  
-  return bestPath || directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity);
-}
-
-// Try a specific conversion path through an intermediate quality
-function tryConversionPath(srcMat, targetMat, inputAmount, targetQuantity, intermediateQuality) {
-  const steps = [];
-  let currentAmount = inputAmount;
-  let currentQuality = srcMat.quality;
-  let currentType = srcMat.type;
-  let currentItem = srcMat.item;
-  
-  // Step 1: Convert to intermediate quality within same type
-  while (currentQuality !== intermediateQuality) {
-    if (currentQuality < intermediateQuality) {
-      const output = Math.floor(currentAmount / TRADE_UP_COST);
-      if (output === 0) return null; // Can't proceed
-      
-      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
-      const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
-      
-      steps.push({
-        action: 'UPGRADE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
-        output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
-        ratio: '6:1'
-      });
-      
-      currentAmount = output;
-      currentQuality++;
-      currentItem = targetItem;
-    } else {
-      const output = currentAmount * TRADE_DOWN_YIELD;
-      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
-      const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
-      
-      steps.push({
-        action: 'DOWNGRADE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
-        output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
-        ratio: '1:3'
-      });
-      
-      currentAmount = output;
-      currentQuality--;
-      currentItem = targetItem;
-    }
-  }
-  
-  // Step 2: Calculate how much to convert across types
-  const crossTypeRatio = TRADE_ACROSS_COST; // 6:1
-  const qualityDifference = intermediateQuality - targetMat.quality;
-  
-  let finalConversionRatio = crossTypeRatio;
-  if (qualityDifference > 0) {
-    // Need to downgrade after cross-type conversion
-    finalConversionRatio = crossTypeRatio / Math.pow(TRADE_DOWN_YIELD, qualityDifference);
-  } else if (qualityDifference < 0) {
-    // Need to upgrade after cross-type conversion  
-    finalConversionRatio = crossTypeRatio * Math.pow(TRADE_UP_COST, -qualityDifference);
-  }
-  
-  const neededForTarget = Math.ceil(targetQuantity * finalConversionRatio);
-  const toConvert = Math.min(currentAmount, neededForTarget);
-  const remainder = currentAmount - toConvert;
-  
-  if (toConvert === 0) return null;
-  
-  // Step 3: Cross-type conversion
-  const crossOutput = Math.floor(toConvert / crossTypeRatio);
-  if (crossOutput === 0) return null;
-  
-  steps.push({
-    action: 'CROSS_TYPE',
-    input: { item: currentItem, type: currentType, quality: intermediateQuality, amount: toConvert },
-    output: { item: targetMat.item, type: targetMat.type, quality: intermediateQuality, amount: crossOutput },
-    ratio: '6:1'
-  });
-  
-  currentAmount = crossOutput;
-  currentType = targetMat.type;
-  currentItem = targetMat.item;
-  
-  // Step 4: Adjust quality to target if needed
-  while (currentQuality !== targetMat.quality) {
-    if (currentQuality < targetMat.quality) {
-      const output = Math.floor(currentAmount / TRADE_UP_COST);
-      if (output === 0) break;
-      
-      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
-      const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
-      
-      steps.push({
-        action: 'UPGRADE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
-        output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
-        ratio: '6:1'
-      });
-      
-      currentAmount = output;
-      currentQuality++;
-      currentItem = targetItem;
-    } else {
-      const output = currentAmount * TRADE_DOWN_YIELD;
-      const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality - 1);
-      const targetItem = targetItems[0]?.item || `Grade ${currentQuality - 1}`;
-      
-      steps.push({
-        action: 'DOWNGRADE',
-        input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
-        output: { item: targetItem, type: currentType, quality: currentQuality - 1, amount: output },
-        ratio: '1:3'
-      });
-      
-      currentAmount = output;
-      currentQuality--;
-      currentItem = targetItem;
-    }
-  }
-  
-  return {
-    steps,
-    inputUsed: inputAmount,
-    outputQuantity: currentAmount,
-    remainder,
-    remainderQuality: intermediateQuality
-  };
-}
 
 export function calculateBlueprintCosts(selectedBlueprints) {
   const totals = {};
