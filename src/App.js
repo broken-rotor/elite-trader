@@ -753,6 +753,15 @@ function App() {
   const removeBlueprint = (id) => setSelectedBlueprints(selectedBlueprints.filter(b => b.id !== id));
   const removeFromInventory = (item) => setInventory(inventory.filter(i => i.item !== item));
   const removeFromNeeds = (item) => setManualNeeds(manualNeeds.filter(i => i.item !== item));
+
+  const updateInventoryQuantity = (item, newQuantity) => {
+    const qty = parseInt(newQuantity) || 0;
+    if (qty <= 0) {
+      removeFromInventory(item);
+    } else {
+      setInventory(inventory.map(i => i.item === item ? { ...i, quantity: qty } : i));
+    }
+  };
   
   const availableBlueprints = selectedModule ? Object.keys(BLUEPRINTS_DB[selectedModule]?.blueprints || {}) : [];
   
@@ -995,8 +1004,17 @@ function App() {
                       <span className={`name ${getQualityClass(mat?.quality)}`}>{inv.item}</span>
                       <span className="grade-label">G{mat?.quality}</span>
                     </div>
-                    <span className="quantity green">×{inv.quantity}</span>
-                    <button className="btn-remove" onClick={() => removeFromInventory(inv.item)}>✕</button>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                      <input
+                        type="number"
+                        className="qty-input-inline"
+                        min="1"
+                        value={inv.quantity}
+                        onChange={(e) => updateInventoryQuantity(inv.item, e.target.value)}
+                        style={{width: '80px'}}
+                      />
+                      <button className="btn-remove" onClick={() => removeFromInventory(inv.item)}>✕</button>
+                    </div>
                   </div>
                 );
               })}
