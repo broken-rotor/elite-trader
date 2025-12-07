@@ -526,38 +526,50 @@ export function optimizeTrading(inventory, needs) {
       if (need.quantity <= 0) break;
       if (opt.source.quantity <= 0) continue;
 
+      // Calculate how much we can actually produce with whole number inputs
       const maxProducible = Math.floor(opt.source.quantity / opt.costPerUnit);
       const toProduce = Math.min(maxProducible, need.quantity);
 
       if (toProduce > 0) {
+        // Calculate the exact whole number of source materials needed
         const consumed = Math.ceil(toProduce * opt.costPerUnit);
-        opt.source.quantity -= consumed;
-        need.quantity -= toProduce;
-
-        const tradeSteps = generateTradeSteps(opt.srcMat, needMat, consumed, toProduce);
         
-        // Check if we should simplify the trade chain or show detailed steps
-        if (hasTradeRemainders(tradeSteps)) {
-          // Show detailed steps when there are remainders
-          trades.push(...tradeSteps);
-        } else {
-          // Simplify to direct conversion when no remainders
-          const simplified = simplifyTradeChain(tradeSteps);
-          if (simplified) {
-            trades.push(simplified);
-          } else {
-            trades.push(...tradeSteps);
-          }
-        }
+        // Ensure we don't consume more than we have
+        const actualConsumed = Math.min(consumed, opt.source.quantity);
+        
+        // Recalculate actual production based on whole number consumption
+        const actualProduced = Math.floor(actualConsumed / opt.costPerUnit);
+        
+        // Only proceed if we can actually produce something
+        if (actualProduced > 0 && actualConsumed <= opt.source.quantity) {
+          opt.source.quantity -= actualConsumed;
+          need.quantity -= actualProduced;
 
-        fulfilled.push({
-          item: need.item,
-          quantity: toProduce,
-          method: 'CONVERTED',
-          from: opt.source.item,
-          consumed,
-          material: needMat
-        });
+          const tradeSteps = generateTradeSteps(opt.srcMat, needMat, actualConsumed, actualProduced);
+          
+          // Check if we should simplify the trade chain or show detailed steps
+          if (hasTradeRemainders(tradeSteps)) {
+            // Show detailed steps when there are remainders
+            trades.push(...tradeSteps);
+          } else {
+            // Simplify to direct conversion when no remainders
+            const simplified = simplifyTradeChain(tradeSteps);
+            if (simplified) {
+              trades.push(simplified);
+            } else {
+              trades.push(...tradeSteps);
+            }
+          }
+
+          fulfilled.push({
+            item: need.item,
+            quantity: actualProduced,
+            method: 'CONVERTED',
+            from: opt.source.item,
+            consumed: actualConsumed,
+            material: needMat
+          });
+        }
       }
     }
 
@@ -646,15 +658,30 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantit
       const output = Math.floor(currentAmount / TRADE_UP_COST);
       if (output === 0) break; // Can't upgrade further
       
+      const consumed = output * TRADE_UP_COST;
+      const remainder = currentAmount - consumed;
+      
       const targetItems = getMaterialsAtTypeQuality(currentType, currentQuality + 1);
       const targetItem = targetItems[0]?.item || `Grade ${currentQuality + 1}`;
       
-      steps.push({
+      const step = {
         action: 'UPGRADE',
         input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
         output: { item: targetItem, type: currentType, quality: currentQuality + 1, amount: output },
         ratio: '6:1'
-      });
+      };
+      
+      // Add remainder information if there is one
+      if (remainder > 0) {
+        step.remainder = {
+          item: currentItem,
+          type: currentType,
+          quality: currentQuality,
+          amount: remainder
+        };
+      }
+      
+      steps.push(step);
       
       currentAmount = output;
       currentQuality++;
@@ -682,12 +709,27 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, _targetQuantit
   if (currentType !== targetMat.type) {
     const output = Math.floor(currentAmount / TRADE_ACROSS_COST);
     if (output > 0) {
-      steps.push({
+      const consumed = output * TRADE_ACROSS_COST;
+      const remainder = currentAmount - consumed;
+      
+      const step = {
         action: 'CROSS_TYPE',
         input: { item: currentItem, type: currentType, quality: currentQuality, amount: currentAmount },
         output: { item: targetMat.item, type: targetMat.type, quality: targetMat.quality, amount: output },
         ratio: '6:1'
-      });
+      };
+      
+      // Add remainder information if there is one
+      if (remainder > 0) {
+        step.remainder = {
+          item: currentItem,
+          type: currentType,
+          quality: currentQuality,
+          amount: remainder
+        };
+      }
+      
+      steps.push(step);
       currentAmount = output;
     }
   }

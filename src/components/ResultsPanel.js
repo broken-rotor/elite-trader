@@ -51,6 +51,11 @@ function ResultsPanel({ allNeeds, result }) {
                       <span className={getQualityClass(trade.output.quality)}>
                         {trade.output.item}
                       </span>
+                      {trade.remainder && (
+                        <span className="remainder">
+                          {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+                        </span>
+                      )}
                       <span className="ratio">[{trade.ratio}]</span>
                     </div>
                   ))}
@@ -79,6 +84,11 @@ function ResultsPanel({ allNeeds, result }) {
                   <span className={getQualityClass(trade.output.quality)}>
                     {trade.output.item}
                   </span>
+                  {trade.remainder && (
+                    <span className="remainder">
+                      {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+                    </span>
+                  )}
                   <span className="ratio">[{trade.ratio}]</span>
                 </div>
               ))}
