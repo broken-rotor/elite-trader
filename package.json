@@ -12,6 +12,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build"
   },
+  "homepage": "https://broken-rotor.github.io/elite-trader",
   "browserslist": {
     "production": [
       ">0.2%",
