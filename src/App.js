@@ -648,14 +648,7 @@ function App() {
         console.error('Failed to parse saved inventory:', e);
       }
     }
-    return [
-      { item: 'Carbon', quantity: 150 },
-      { item: 'Iron', quantity: 200 },
-      { item: 'Phosphorus', quantity: 100 },
-      { item: 'Sulphur', quantity: 120 },
-      { item: 'Atypical Disrupted Wake Echoes', quantity: 50 },
-      { item: 'Chemical Processors', quantity: 30 },
-    ];
+    return [];
   });
 
   const [manualNeeds, setManualNeeds] = useState([]);
