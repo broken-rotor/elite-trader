@@ -535,7 +535,20 @@ export function optimizeTrading(inventory, needs) {
         need.quantity -= toProduce;
 
         const tradeSteps = generateTradeSteps(opt.srcMat, needMat, consumed, toProduce);
-        trades.push(...tradeSteps);
+        
+        // Check if we should simplify the trade chain or show detailed steps
+        if (hasTradeRemainders(tradeSteps)) {
+          // Show detailed steps when there are remainders
+          trades.push(...tradeSteps);
+        } else {
+          // Simplify to direct conversion when no remainders
+          const simplified = simplifyTradeChain(tradeSteps);
+          if (simplified) {
+            trades.push(simplified);
+          } else {
+            trades.push(...tradeSteps);
+          }
+        }
 
         fulfilled.push({
           item: need.item,
@@ -557,7 +570,16 @@ export function optimizeTrading(inventory, needs) {
     }
   }
 
-  return { trades, fulfilled, unfulfilled, remainingInventory: inv.filter(i => i.quantity > 0) };
+  // Group trades by base material type
+  const groupedTrades = groupTradesByBaseType(trades);
+  
+  return { 
+    trades, 
+    groupedTrades,
+    fulfilled, 
+    unfulfilled, 
+    remainingInventory: inv.filter(i => i.quantity > 0) 
+  };
 }
 
 export function generateTradeSteps(srcMat, targetMat, inputAmount) {
@@ -642,4 +664,88 @@ export function calculateBlueprintCosts(selectedBlueprints) {
   }
 
   return Object.entries(totals).map(([item, quantity]) => ({ item, quantity }));
+}
+
+// Extract base material type (Raw, Manufactured, Encoded) from material type string
+export function getBaseMaterialType(materialType) {
+  if (materialType.startsWith('Raw')) return 'Raw';
+  if (materialType.startsWith('Manufactured')) return 'Manufactured';
+  if (materialType.startsWith('Encoded')) return 'Encoded';
+  return 'Unknown';
+}
+
+// Check if a trade chain has remainders that would require detailed steps
+export function hasTradeRemainders(steps) {
+  if (steps.length <= 1) return false;
+  
+  // Check if any step in the chain produces a remainder
+  for (let i = 0; i < steps.length - 1; i++) {
+    const currentStep = steps[i];
+    
+    // For upgrades (6:1 ratio), check if input amount is not perfectly divisible by 6
+    if (currentStep.action === 'UPGRADE' && currentStep.input.amount % 6 !== 0) {
+      return true;
+    }
+    
+    // For cross-type trades (6:1 ratio), check if input amount is not perfectly divisible by 6
+    if (currentStep.action === 'CROSS_TYPE' && currentStep.input.amount % 6 !== 0) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Create a simplified direct conversion from a chain of trade steps
+export function simplifyTradeChain(steps) {
+  if (steps.length === 0) return null;
+  if (steps.length === 1) return steps[0];
+  
+  const firstStep = steps[0];
+  const lastStep = steps[steps.length - 1];
+  
+  // Calculate the overall conversion ratio
+  let totalRatio = 1;
+  for (const step of steps) {
+    if (step.action === 'UPGRADE' || step.action === 'CROSS_TYPE') {
+      totalRatio *= 6; // 6:1 ratio
+    } else if (step.action === 'DOWNGRADE') {
+      totalRatio /= 3; // 1:3 ratio
+    }
+  }
+  
+  return {
+    action: 'DIRECT_CONVERSION',
+    input: firstStep.input,
+    output: lastStep.output,
+    ratio: `${Math.round(totalRatio)}:1`,
+    originalSteps: steps
+  };
+}
+
+// Group trades by base material type (Raw, Manufactured, Encoded)
+export function groupTradesByBaseType(trades) {
+  const groups = {
+    'Raw': [],
+    'Manufactured': [],
+    'Encoded': []
+  };
+  
+  for (const trade of trades) {
+    // Determine the base type from the input material (the material being traded away)
+    const baseType = getBaseMaterialType(trade.input.type);
+    if (groups[baseType]) {
+      groups[baseType].push(trade);
+    }
+  }
+  
+  // Filter out empty groups
+  const result = {};
+  for (const [type, tradeList] of Object.entries(groups)) {
+    if (tradeList.length > 0) {
+      result[type] = tradeList;
+    }
+  }
+  
+  return result;
 }
