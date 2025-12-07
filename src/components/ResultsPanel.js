@@ -1,8 +1,23 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 const getQualityClass = (quality) => `quality-${quality}`;
 
 function ResultsPanel({ allNeeds, result }) {
+  const [tradeTab, setTradeTab] = useState('Raw');
+
+  // Get available trade categories - wrapped in useMemo to prevent recreating array on every render
+  const availableCategories = useMemo(() =>
+    result.groupedTrades ? Object.keys(result.groupedTrades) : [],
+    [result.groupedTrades]
+  );
+
+  // Set default tab to first available category if current tab doesn't exist
+  useEffect(() => {
+    if (availableCategories.length > 0 && !availableCategories.includes(tradeTab)) {
+      setTradeTab(availableCategories[0]);
+    }
+  }, [availableCategories, tradeTab]);
+
   if (allNeeds.length === 0) {
     return (
       <div className="panel results">
@@ -23,16 +38,39 @@ function ResultsPanel({ allNeeds, result }) {
         <div className="trade-sequence">
           <h3 className="purple">Trade Sequence</h3>
           {result.groupedTrades && Object.keys(result.groupedTrades).length > 0 ? (
-            // Show grouped trades by base type
-            Object.entries(result.groupedTrades).map(([baseType, trades]) => (
-              <div key={baseType} className="trade-group">
-                <h4 className={`trade-group-header ${baseType.toLowerCase()}`}>
-                  {baseType === 'Raw' && '⛏️ Raw Materials'}
-                  {baseType === 'Manufactured' && '🔧 Manufactured Materials'}
-                  {baseType === 'Encoded' && '💾 Encoded Data'}
-                </h4>
+            <>
+              {/* Material Type Tabs */}
+              <div className="tabs">
+                {availableCategories.includes('Raw') && (
+                  <button
+                    className={`tab-btn ${tradeTab === 'Raw' ? 'active' : ''}`}
+                    onClick={() => setTradeTab('Raw')}
+                  >
+                    ⛏️ Raw Materials
+                  </button>
+                )}
+                {availableCategories.includes('Manufactured') && (
+                  <button
+                    className={`tab-btn ${tradeTab === 'Manufactured' ? 'active' : ''}`}
+                    onClick={() => setTradeTab('Manufactured')}
+                  >
+                    🔧 Manufactured
+                  </button>
+                )}
+                {availableCategories.includes('Encoded') && (
+                  <button
+                    className={`tab-btn ${tradeTab === 'Encoded' ? 'active' : ''}`}
+                    onClick={() => setTradeTab('Encoded')}
+                  >
+                    💾 Encoded Data
+                  </button>
+                )}
+              </div>
+
+              {/* Display trades for active tab */}
+              {result.groupedTrades[tradeTab] && (
                 <div className="trade-list">
-                  {trades.map((trade, i) => (
+                  {result.groupedTrades[tradeTab].map((trade, i) => (
                     <div key={i} className="trade-item">
                       <span className={`trade-badge ${
                         trade.action === 'UPGRADE' ? 'upgrade' :
@@ -60,8 +98,8 @@ function ResultsPanel({ allNeeds, result }) {
                     </div>
                   ))}
                 </div>
-              </div>
-            ))
+              )}
+            </>
           ) : (
             // Fallback to ungrouped trades if grouping failed
             <div className="trade-list">
