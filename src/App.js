@@ -166,6 +166,17 @@ function App() {
   const removeFromNeeds = (item) =>
     setManualNeeds(manualNeeds.filter(i => i.item !== item));
 
+  const updateManualNeedQuantity = (item, newQuantity) => {
+    const qty = parseInt(newQuantity) || 0;
+    if (qty <= 0) {
+      removeFromNeeds(item);
+    } else {
+      setManualNeeds(manualNeeds.map(i =>
+        i.item === item ? { ...i, quantity: qty } : i
+      ));
+    }
+  };
+
   const updateInventoryQuantity = (item, newQuantity) => {
     const qty = parseInt(newQuantity) || 0;
     if (qty <= 0) {
@@ -247,6 +258,7 @@ function App() {
             addToNeeds={addToNeeds}
             manualNeeds={manualNeeds}
             removeFromNeeds={removeFromNeeds}
+            updateManualNeedQuantity={updateManualNeedQuantity}
           />
         )}
 
