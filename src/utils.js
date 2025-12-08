@@ -1102,16 +1102,15 @@ export function calculateBlueprintCosts(selectedBlueprints) {
     const blueprintData = moduleData.blueprints[bp.blueprint];
     if (!blueprintData) continue;
 
-    // Get the reroll strategy
-    const strategy = REROLL_STRATEGIES[bp.strategy || 'single'];
-    if (!strategy) continue;
+    // Get the rolls from the blueprint object, fallback to strategy if not available
+    const rolls = bp.rolls || REROLL_STRATEGIES[bp.strategy || 'single']?.rolls || { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 };
 
     for (let g = bp.fromGrade; g <= bp.toGrade; g++) {
       const gradeMats = blueprintData.grades[g];
       if (!gradeMats) continue;
 
-      // Get rolls for this specific grade based on strategy
-      const rollsForGrade = strategy.rolls[g] || 1;
+      // Get rolls for this specific grade
+      const rollsForGrade = rolls[g] || 1;
 
       for (const mat of gradeMats) {
         const key = mat.item;

@@ -4,7 +4,8 @@ import {
   MATERIALS_DB,
   getMaterial,
   calculateBlueprintCosts,
-  optimizeTrading
+  optimizeTrading,
+  REROLL_STRATEGIES
 } from './utils';
 import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';
@@ -134,6 +135,7 @@ function App() {
 
   const addBlueprint = () => {
     if (selectedModule && selectedBp) {
+      const strategyData = REROLL_STRATEGIES[strategy];
       setSelectedBlueprints([
         ...selectedBlueprints,
         {
@@ -142,7 +144,8 @@ function App() {
           blueprint: selectedBp,
           fromGrade,
           toGrade,
-          strategy
+          strategy,
+          rolls: { ...strategyData.rolls }
         }
       ]);
     }
@@ -150,6 +153,12 @@ function App() {
 
   const removeBlueprint = (id) =>
     setSelectedBlueprints(selectedBlueprints.filter(b => b.id !== id));
+
+  const updateBlueprintRolls = (id, grade, rolls) => {
+    setSelectedBlueprints(selectedBlueprints.map(bp =>
+      bp.id === id ? { ...bp, rolls: { ...bp.rolls, [grade]: rolls } } : bp
+    ));
+  };
 
   const removeFromInventory = (item) =>
     setInventory(inventory.filter(i => i.item !== item));
@@ -223,6 +232,7 @@ function App() {
             selectedBlueprints={selectedBlueprints}
             addBlueprint={addBlueprint}
             removeBlueprint={removeBlueprint}
+            updateBlueprintRolls={updateBlueprintRolls}
             blueprintNeeds={blueprintNeeds}
           />
         )}
