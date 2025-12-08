@@ -717,6 +717,102 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity
       // Downgrade: Use step-by-step approach to leave remainders at highest quality
       const qualityDiff = currentQuality - targetMat.quality;
 
+      // For cross-type downgrades, we need to handle the final step specially
+      // We downgrade step-by-step until we reach targetQuality + 1, then combine
+      // the final downgrade with the cross-type conversion
+      if (needsCrossType && qualityDiff > 0) {
+        // Calculate how much we need at each quality level, working backwards
+        // For the final step (targetQuality+1 → targetQuality with cross-type): need 2:1 ratio
+        const neededAtTargetQualityPlus1 = targetQuantity * 2;
+
+        // Build the chain of needed amounts at each quality level
+        const neededAtQuality = {};
+        neededAtQuality[targetMat.quality + 1] = neededAtTargetQualityPlus1;
+
+        // Work backwards to calculate how much we need at each intermediate quality
+        for (let q = targetMat.quality + 2; q <= currentQuality; q++) {
+          // To get X at quality (q-1), we need Math.ceil(X/3) at quality q
+          neededAtQuality[q] = Math.ceil(neededAtQuality[q - 1] / TRADE_DOWN_YIELD);
+        }
+
+        // Now downgrade step-by-step, only converting what we need
+        while (currentQuality > targetMat.quality + 1) {
+          const nextQuality = currentQuality - 1;
+          const nextQualityItems = getMaterialsAtTypeQuality(currentType, nextQuality);
+          const nextQualityItem = nextQualityItems[0]?.item || `Grade ${nextQuality}`;
+
+          // Calculate how much to convert at this step
+          const neededAtNextQuality = neededAtQuality[nextQuality];
+          const amountToConvert = Math.ceil(neededAtNextQuality / TRADE_DOWN_YIELD);
+          const actualConvert = Math.min(currentAmount, amountToConvert);
+          const output = actualConvert * TRADE_DOWN_YIELD;
+          const remainder = currentAmount - actualConvert;
+
+          const step = {
+            action: 'DOWNGRADE',
+            input: { item: currentItem, type: currentType, quality: currentQuality, amount: actualConvert },
+            output: { item: nextQualityItem, type: currentType, quality: nextQuality, amount: output },
+            ratio: '1:3'
+          };
+
+          if (remainder > 0) {
+            step.remainder = {
+              item: currentItem,
+              type: currentType,
+              quality: currentQuality,
+              amount: remainder
+            };
+          }
+
+          steps.push(step);
+
+          currentAmount = output;
+          currentQuality = nextQuality;
+          currentItem = nextQualityItem;
+        }
+
+        // Now we're at targetQuality + 1, and we need to do the final downgrade + cross-type
+        // The combined cost is: (1/3 downgrade) * (6 cross-type) = 2
+        // So the ratio is 2:1 (need 2 units to get 1 unit)
+        const neededInput = targetQuantity * 2; // 2:1 ratio
+        const amountToConvert = Math.min(currentAmount, neededInput);
+        const output = Math.floor(amountToConvert / 2);
+
+        if (output > 0) {
+          const consumed = output * 2;
+          const remainder = currentAmount - consumed;
+
+          const step = {
+            action: 'CROSS_TYPE',
+            input: { item: currentItem, type: currentType, quality: currentQuality, amount: consumed },
+            output: { item: targetMat.item, type: targetMat.type, quality: targetMat.quality, amount: output },
+            ratio: '2:1'
+          };
+
+          if (remainder > 0) {
+            step.remainder = {
+              item: currentItem,
+              type: currentType,
+              quality: currentQuality,
+              amount: remainder
+            };
+          }
+
+          steps.push(step);
+          currentAmount = output;
+          currentQuality = targetMat.quality;
+          currentItem = targetMat.item;
+        }
+
+        // We've already handled the cross-type, so we're done
+        return {
+          steps,
+          inputUsed: inputAmount,
+          outputQuantity: currentAmount
+        };
+      }
+
+      // Standard downgrade without cross-type
       // If multiple steps needed and we won't use all material, downgrade incrementally
       if (qualityDiff > 1) {
         // Calculate total yield if we converted everything
@@ -822,7 +918,7 @@ function directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity
     }
   }
 
-  // Then handle type change if needed
+  // Then handle type change if needed (only if not already handled above)
   if (currentType !== targetMat.type) {
     // Calculate how much we need to convert for cross-type
     const neededInput = Math.min(currentAmount, targetQuantity * TRADE_ACROSS_COST);

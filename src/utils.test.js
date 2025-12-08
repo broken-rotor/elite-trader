@@ -708,17 +708,17 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       const result = optimizeTrading(inventory, needs);
 
-      // Should fulfill with downgrade + cross-type or combined
+      // Should fulfill with combined downgrade + cross-type
       expect(result.fulfilled).toHaveLength(1);
       expect(result.fulfilled[0].item).toBe('Nickel');
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have a cross-type trade
+      // Should have a combined cross-type trade with downgrade (2:1 ratio)
       const crossTypeTrade = result.trades.find(t => t.action === 'CROSS_TYPE');
       expect(crossTypeTrade).toBeDefined();
-      expect(crossTypeTrade.ratio).toBe('6:1');
-      expect(crossTypeTrade.input.amount).toBe(6);
+      expect(crossTypeTrade.ratio).toBe('2:1');
+      expect(crossTypeTrade.input.amount).toBe(2);
       expect(crossTypeTrade.output.amount).toBe(1);
       expect(crossTypeTrade.remainder).toBeUndefined();
     });
@@ -903,6 +903,213 @@ describe('Trading Edge Cases - Comprehensive', () => {
       const remainingCarbon = result.remainingInventory.find(i => i.item === 'Carbon');
       expect(remainingCarbon).toBeDefined();
       expect(remainingCarbon.quantity).toBe(4);
+    });
+  });
+
+  describe('9. All cross-type downgrades', () => {
+    // Tempered Alloys is Manufactured (Thermic) quality 1
+    // Heat Resistant Ceramics is Manufactured (Thermic) quality 2
+    // Precipitated Alloys is Manufactured (Thermic) quality 3
+    // Thermic Alloys is Manufactured (Thermic) quality 4
+    // Military Grade Alloys is Manufactured (Thermic) quality 5
+    // Worn Shield Emitters is Manufactured (Shielding) quality 1
+    // Shield Emitters is Manufactured (Shielding) quality 2
+    // Shielding Sensors is Manufactured (Shielding) quality 3
+    // Compound Shielding is Manufactured (Shielding) quality 4
+    // Imperial Shielding is Manufactured (Shielding) quality 5
+
+    test('convert 1x G5 cat 1 to 1x G5 cat 2', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [{ item: 'Military Grade Alloys', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G5 cat 2: 6x G5 cat 1 → 1x G5 cat 2
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Military Grade Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(1);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(5);
+      expect(result.trades[0].ratio).toBe('6:1');
+      expect(result.trades[0].input.amount).toBe(6);
+      expect(result.trades[0].output.amount).toBe(1);
+      expect(result.trades[0].remainder).toBeUndefined();
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(94);
+    });
+
+    test('convert 2x G5 cat 1 to 1x G4 cat 2', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [{ item: 'Thermic Alloys', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G4 cat 2: 2x G5 cat 1 → 1x G4 cat 2
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Thermic Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(1);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('2:1');
+      expect(result.trades[0].input.amount).toBe(2);
+      expect(result.trades[0].output.amount).toBe(1);
+      expect(result.trades[0].remainder).toBeUndefined();
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(98);
+    });
+
+    test('convert 1x G5 cat 1 to 1x G3 cat 2 (with spare 1x G4 cat 1)', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [{ item: 'Precipitated Alloys', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G3 cat 2: 1x G5 cat 1 → 1x G4 cat 1; 2x G4 cat 1 → 1x G3 cat 2 (with 1x G4 cat 1 remainder)
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Precipitated Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(2);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(4);
+      expect(result.trades[1].output.quality).toBe(3);
+      expect(result.trades[1].ratio).toBe('2:1');
+      expect(result.trades[1].input.amount).toBe(2);
+      expect(result.trades[1].output.amount).toBe(1);
+      expect(result.trades[1].remainder).toBeDefined();
+      expect(result.trades[1].remainder.amount).toBe(1);
+      expect(result.trades[1].remainder.item).toBe('Compound Shielding');
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(99);
+    });
+
+    test('convert 1x G5 cat 1 to 1x G2 cat 2 (with spare 2x G4 cat 1 & 1x G3 cat 1)', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [{ item: 'Heat Resistant Ceramics', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G2 cat 2: 1x G5 cat 1 → 3x G4 cat 1; 1x G4 cat 1 → 3x G3 cat 1 (with 2x G4 cat 1 remainder); 2 G3 cat 1 → 1 G2 cat 2 (with 1x G3 cat 1 remainder)
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Heat Resistant Ceramics');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(3);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(4);
+      expect(result.trades[1].output.quality).toBe(3);
+      expect(result.trades[1].ratio).toBe('1:3');
+      expect(result.trades[1].input.amount).toBe(1);
+      expect(result.trades[1].output.amount).toBe(3);
+      expect(result.trades[1].remainder).toBeDefined();
+      expect(result.trades[1].remainder.amount).toBe(2);
+      expect(result.trades[1].remainder.item).toBe('Compound Shielding');
+      expect(result.trades[2]).toBeDefined();
+      expect(result.trades[2].input.quality).toBe(3);
+      expect(result.trades[2].output.quality).toBe(2);
+      expect(result.trades[2].ratio).toBe('2:1');
+      expect(result.trades[2].input.amount).toBe(2);
+      expect(result.trades[2].output.amount).toBe(1);
+      expect(result.trades[2].remainder).toBeDefined();
+      expect(result.trades[2].remainder.amount).toBe(1);
+      expect(result.trades[2].remainder.item).toBe('Shielding Sensors');
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(99);
+    });
+
+    test('convert 1x G5 cat 1 to 1x G1 cat 2 (with spare 2x G4 cat 1 & 1x G3 cat 1)', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [{ item: 'Tempered Alloys', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G1 cat 2: 1x G5 cat 1 → 3x G4 cat 1; 1x G4 cat 1 → 3x G3 cat 1 (with 2x G4 cat 1 remainder); 1x G3 cat 1 → 3x G2 cat 1 (with 2x G3 cat 1 remainder); 2 G2 cat 1 → 1 G1 cat 2 (with 1x G2 cat 1 remainder)
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Tempered Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(4);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(4);
+      expect(result.trades[1].output.quality).toBe(3);
+      expect(result.trades[1].ratio).toBe('1:3');
+      expect(result.trades[1].input.amount).toBe(1);
+      expect(result.trades[1].output.amount).toBe(3);
+      expect(result.trades[1].remainder).toBeDefined();
+      expect(result.trades[1].remainder.amount).toBe(2);
+      expect(result.trades[1].remainder.item).toBe('Compound Shielding');
+      expect(result.trades[2]).toBeDefined();
+      expect(result.trades[2].input.quality).toBe(3);
+      expect(result.trades[2].output.quality).toBe(2);
+      expect(result.trades[2].ratio).toBe('1:3');
+      expect(result.trades[2].input.amount).toBe(1);
+      expect(result.trades[2].output.amount).toBe(3);
+      expect(result.trades[2].remainder).toBeDefined();
+      expect(result.trades[2].remainder.amount).toBe(2);
+      expect(result.trades[2].remainder.item).toBe('Shielding Sensors');
+      expect(result.trades[3]).toBeDefined();
+      expect(result.trades[3].input.quality).toBe(2);
+      expect(result.trades[3].output.quality).toBe(1);
+      expect(result.trades[3].ratio).toBe('2:1');
+      expect(result.trades[3].input.amount).toBe(2);
+      expect(result.trades[3].output.amount).toBe(1);
+      expect(result.trades[3].remainder).toBeDefined();
+      expect(result.trades[3].remainder.amount).toBe(1);
+      expect(result.trades[3].remainder.item).toBe('Shield Emitters');
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(99);
     });
   });
 });
