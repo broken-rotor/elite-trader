@@ -708,17 +708,17 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       const result = optimizeTrading(inventory, needs);
 
-      // Should fulfill with downgrade + cross-type or combined
+      // Should fulfill with combined downgrade + cross-type
       expect(result.fulfilled).toHaveLength(1);
       expect(result.fulfilled[0].item).toBe('Nickel');
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have a cross-type trade
+      // Should have a combined cross-type trade with downgrade (2:1 ratio)
       const crossTypeTrade = result.trades.find(t => t.action === 'CROSS_TYPE');
       expect(crossTypeTrade).toBeDefined();
-      expect(crossTypeTrade.ratio).toBe('6:1');
-      expect(crossTypeTrade.input.amount).toBe(6);
+      expect(crossTypeTrade.ratio).toBe('2:1');
+      expect(crossTypeTrade.input.amount).toBe(2);
       expect(crossTypeTrade.output.amount).toBe(1);
       expect(crossTypeTrade.remainder).toBeUndefined();
     });
