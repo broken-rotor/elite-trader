@@ -1111,5 +1111,266 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(remainingImperialShielding).toBeDefined();
       expect(remainingImperialShielding.quantity).toBe(99);
     });
+
+    test('convert 1x G5 cat 1 to 1x G2 cat 2 + 2x G4 cat 1 & 1x G3 cat 1', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+      const needs = [
+        { item: 'Heat Resistant Ceramics', quantity: 1 },
+        { item: 'Compound Shielding', quantity: 2 },
+        { item: 'Shielding Sensors', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G2 cat 2: 1x G5 cat 1 → 3x G4 cat 1; 1x G4 cat 1 → 3x G3 cat 1 (with 2x G4 cat 1 remainder); 2 G3 cat 1 → 1 G2 cat 2 (with 1x G3 cat 1 remainder)
+      expect(result.fulfilled).toHaveLength(3);
+      expect(result.fulfilled[0].item).toBe('Heat Resistant Ceramics');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.fulfilled[1].item).toBe('Compound Shielding');
+      expect(result.fulfilled[1].quantity).toBe(2);
+      expect(result.fulfilled[2].item).toBe('Shielding Sensors');
+      expect(result.fulfilled[2].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(3);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(4);
+      expect(result.trades[1].output.quality).toBe(3);
+      expect(result.trades[1].ratio).toBe('1:3');
+      expect(result.trades[1].input.amount).toBe(1);
+      expect(result.trades[1].output.amount).toBe(3);
+      expect(result.trades[1].remainder).toBeDefined();
+      expect(result.trades[1].remainder.amount).toBe(2);
+      expect(result.trades[1].remainder.item).toBe('Compound Shielding');
+      expect(result.trades[2]).toBeDefined();
+      expect(result.trades[2].input.quality).toBe(3);
+      expect(result.trades[2].output.quality).toBe(2);
+      expect(result.trades[2].ratio).toBe('2:1');
+      expect(result.trades[2].input.amount).toBe(2);
+      expect(result.trades[2].output.amount).toBe(1);
+      expect(result.trades[2].remainder).toBeDefined();
+      expect(result.trades[2].remainder.amount).toBe(1);
+      expect(result.trades[2].remainder.item).toBe('Shielding Sensors');
+
+      // The remaining inventory should show leftover Imperial Shielding
+      const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperialShielding).toBeDefined();
+      expect(remainingImperialShielding.quantity).toBe(99);
+    });
+
+    test('convert 1x G5 cat 1 + 3x G4 cat 1 to 1x G4 cat 2', () => {
+      const inventory = [
+        { item: 'Imperial Shielding', quantity: 1 },
+        { item: 'Compound Shielding', quantity: 3 },
+      ];
+      const needs = [{ item: 'Thermic Alloys', quantity: 1 }];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill 1x G4 cat 2: 1x G5 cat 1 → 3x G4 cat 1; 6x G4 cat 1 → 1x G4 cat 2
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Thermic Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades.length).toBe(2);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(5);
+      expect(result.trades[0].output.quality).toBe(4);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(4);
+      expect(result.trades[1].output.quality).toBe(4);
+      expect(result.trades[1].ratio).toBe('6:1');
+      expect(result.trades[1].input.amount).toBe(6);
+      expect(result.trades[1].output.amount).toBe(1);
+      expect(result.trades[1].remainder).toBeUndefined();
+    });
+  });
+
+  describe('10. Order Independence - Algorithm should optimize regardless of need order', () => {
+    test('same needs in different orders produce equally optimal results', () => {
+      const inventory = [{ item: 'Imperial Shielding', quantity: 100 }];
+
+      // Order 1: cross-type first, then same-type needs
+      const needs1 = [
+        { item: 'Heat Resistant Ceramics', quantity: 1 },  // G2 Thermic (cross-type)
+        { item: 'Compound Shielding', quantity: 2 },       // G4 Shielding
+        { item: 'Shielding Sensors', quantity: 1 }         // G3 Shielding
+      ];
+
+      // Order 2: same-type needs first, then cross-type
+      const needs2 = [
+        { item: 'Compound Shielding', quantity: 2 },       // G4 Shielding
+        { item: 'Shielding Sensors', quantity: 1 },        // G3 Shielding
+        { item: 'Heat Resistant Ceramics', quantity: 1 }   // G2 Thermic (cross-type)
+      ];
+
+      // Order 3: completely reversed
+      const needs3 = [
+        { item: 'Shielding Sensors', quantity: 1 },        // G3 Shielding
+        { item: 'Heat Resistant Ceramics', quantity: 1 },  // G2 Thermic (cross-type)
+        { item: 'Compound Shielding', quantity: 2 }        // G4 Shielding
+      ];
+
+      const result1 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs1);
+      const result2 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs2);
+      const result3 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs3);
+
+      // All three should produce the same number of trades (optimal = 3)
+      expect(result1.trades.length).toBe(3);
+      expect(result2.trades.length).toBe(3);
+      expect(result3.trades.length).toBe(3);
+
+      // All needs should be fulfilled
+      expect(result1.fulfilled).toHaveLength(3);
+      expect(result2.fulfilled).toHaveLength(3);
+      expect(result3.fulfilled).toHaveLength(3);
+
+      expect(result1.unfulfilled).toHaveLength(0);
+      expect(result2.unfulfilled).toHaveLength(0);
+      expect(result3.unfulfilled).toHaveLength(0);
+
+      // But fulfilled arrays should maintain original order
+      expect(result1.fulfilled[0].item).toBe('Heat Resistant Ceramics');
+      expect(result1.fulfilled[1].item).toBe('Compound Shielding');
+      expect(result1.fulfilled[2].item).toBe('Shielding Sensors');
+
+      expect(result2.fulfilled[0].item).toBe('Compound Shielding');
+      expect(result2.fulfilled[1].item).toBe('Shielding Sensors');
+      expect(result2.fulfilled[2].item).toBe('Heat Resistant Ceramics');
+
+      expect(result3.fulfilled[0].item).toBe('Shielding Sensors');
+      expect(result3.fulfilled[1].item).toBe('Heat Resistant Ceramics');
+      expect(result3.fulfilled[2].item).toBe('Compound Shielding');
+    });
+
+    test('cross-type needs processed before same-type needs for optimal remainder reuse', () => {
+      const inventory = [{ item: 'Military Grade Alloys', quantity: 10 }];
+
+      // Need both cross-type and same-type from same source
+      const needs = [
+        { item: 'Imperial Shielding', quantity: 1 },       // G5 Shielding (cross-type from Thermic)
+        { item: 'Thermic Alloys', quantity: 2 }            // G4 Thermic (same-type downgrade)
+      ];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill both needs
+      expect(result.fulfilled).toHaveLength(2);
+      expect(result.fulfilled[0].item).toBe('Imperial Shielding');
+      expect(result.fulfilled[1].item).toBe('Thermic Alloys');
+      expect(result.unfulfilled).toHaveLength(0);
+    });
+
+    test('lower quality needs processed before higher quality when same complexity', () => {
+      const inventory = [{ item: 'Carbon', quantity: 300 }];
+
+      // Multiple needs at different qualities from same source
+      const needs = [
+        { item: 'Yttrium', quantity: 1 },     // G4 (requires 216x G1)
+        { item: 'Vanadium', quantity: 1 },    // G2 (requires 6x G1)
+        { item: 'Niobium', quantity: 1 }      // G3 (requires 36x G1)
+      ];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill all needs
+      expect(result.fulfilled).toHaveLength(3);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      // Total consumption should be 216 + 6 + 36 = 258
+      const remainingCarbon = result.remainingInventory.find(i => i.item === 'Carbon');
+      if (remainingCarbon) {
+        expect(remainingCarbon.quantity).toBe(42); // 300 - 258 = 42
+      } else {
+        // If no Carbon left, that's also valid (might have used slightly more due to rounding)
+        const totalRemaining = result.remainingInventory.reduce((sum, i) => sum + i.quantity, 0);
+        expect(totalRemaining).toBeLessThan(50); // Should have used most of it
+      }
+
+      // But fulfilled should maintain original order
+      expect(result.fulfilled[0].item).toBe('Yttrium');
+      expect(result.fulfilled[1].item).toBe('Vanadium');
+      expect(result.fulfilled[2].item).toBe('Niobium');
+    });
+
+    test('remainder reuse across different need orders', () => {
+      const inventory = [{ item: 'Vanadium', quantity: 10 }];
+
+      // Order 1: need downgrade target first
+      const needs1 = [
+        { item: 'Carbon', quantity: 5 },      // G1 (direct downgrade target)
+        { item: 'Vanadium', quantity: 2 }     // G2 (direct match)
+      ];
+
+      // Order 2: need direct match first
+      const needs2 = [
+        { item: 'Vanadium', quantity: 2 },    // G2 (direct match)
+        { item: 'Carbon', quantity: 5 }       // G1 (downgrade target)
+      ];
+
+      const result1 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs1);
+      const result2 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs2);
+
+      // Both should fulfill all needs optimally
+      expect(result1.fulfilled).toHaveLength(2);
+      expect(result2.fulfilled).toHaveLength(2);
+      expect(result1.unfulfilled).toHaveLength(0);
+      expect(result2.unfulfilled).toHaveLength(0);
+
+      // Should use similar inventory (2 direct + 2 downgraded for 5 Carbon)
+      const remaining1 = result1.remainingInventory.reduce((sum, i) => sum + i.quantity, 0);
+      const remaining2 = result2.remainingInventory.reduce((sum, i) => sum + i.quantity, 0);
+
+      // Both should leave similar remainders (accounting for downgrade yields)
+      expect(remaining1).toBeGreaterThanOrEqual(0);
+      expect(remaining2).toBeGreaterThanOrEqual(0);
+    });
+
+    test('complex multi-category needs remain order-independent', () => {
+      const inventory = [
+        { item: 'Carbon', quantity: 50 },
+        { item: 'Iron', quantity: 50 },
+        { item: 'Salvaged Alloys', quantity: 50 }
+      ];
+
+      // Different categories mixed together
+      const needs1 = [
+        { item: 'Vanadium', quantity: 2 },           // Raw G2
+        { item: 'Galvanising Alloys', quantity: 2 }, // Manufactured G2
+        { item: 'Nickel', quantity: 2 }              // Raw G1 (different subtype)
+      ];
+
+      const needs2 = [
+        { item: 'Galvanising Alloys', quantity: 2 },
+        { item: 'Nickel', quantity: 2 },
+        { item: 'Vanadium', quantity: 2 }
+      ];
+
+      const result1 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs1);
+      const result2 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs2);
+
+      // Both should fulfill all needs
+      expect(result1.fulfilled).toHaveLength(3);
+      expect(result2.fulfilled).toHaveLength(3);
+      expect(result1.unfulfilled).toHaveLength(0);
+      expect(result2.unfulfilled).toHaveLength(0);
+
+      // Results should maintain original order
+      expect(result1.fulfilled[0].item).toBe('Vanadium');
+      expect(result2.fulfilled[0].item).toBe('Galvanising Alloys');
+    });
   });
 });

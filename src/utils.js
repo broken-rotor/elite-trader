@@ -451,6 +451,12 @@ export function optimizeTrading(inventory, needs) {
   const fulfilled = [];
   const unfulfilled = [];
 
+  // Store original order for later restoration
+  const originalOrder = new Map();
+  req.forEach((need, index) => {
+    originalOrder.set(need, index);
+  });
+
   // Direct fulfillment
   for (const need of req) {
     const match = inv.find(i => i.item === need.item);
@@ -501,10 +507,109 @@ export function optimizeTrading(inventory, needs) {
     }
   }
 
+  // Sort needs to optimize remainder reuse
+  // Priority: cross-type conversions first (most complex), then by quality (lowest first)
+  // This maximizes the chance that remainders from complex conversions fulfill simpler needs
+  req.sort((a, b) => {
+    const matA = getMaterial(a.item);
+    const matB = getMaterial(b.item);
+    if (!matA || !matB) return 0;
+
+    // Check if conversion requires cross-type (different subcategory within same main category)
+    const needsCrossTypeA = inv.some(i => {
+      const srcMat = getMaterial(i.item);
+      return i.quantity > 0 && srcMat &&
+             getMainCategory(srcMat.type) === getMainCategory(matA.type) &&
+             srcMat.type !== matA.type;
+    });
+
+    const needsCrossTypeB = inv.some(i => {
+      const srcMat = getMaterial(i.item);
+      return i.quantity > 0 && srcMat &&
+             getMainCategory(srcMat.type) === getMainCategory(matB.type) &&
+             srcMat.type !== matB.type;
+    });
+
+    // Cross-type conversions go first
+    if (needsCrossTypeA && !needsCrossTypeB) return -1;
+    if (!needsCrossTypeA && needsCrossTypeB) return 1;
+
+    // Within same conversion type, process lower quality first
+    // This way higher quality remainders can fulfill lower quality needs
+    return matA.quality - matB.quality;
+  });
+
   // Type conversions
   for (const need of req) {
     if (need.quantity <= 0) continue;
     const needMat = getMaterial(need.item);
+
+    // Check if we can combine multiple sources through intermediate conversions
+    // This handles cases where preexisting inventory at intermediate quality can be pooled
+    const needsCrossType = inv.some(i => {
+      const mat = getMaterial(i.item);
+      return i.quantity > 0 && mat && getMainCategory(mat.type) === getMainCategory(needMat.type) && mat.type !== needMat.type;
+    });
+
+    if (needsCrossType) {
+      // Group inventory by main category and quality
+      const sameCategory = inv.filter(i => {
+        const mat = getMaterial(i.item);
+        return i.quantity > 0 && mat && getMainCategory(mat.type) === getMainCategory(needMat.type);
+      });
+
+      // Try to consolidate materials to the target quality first
+      for (const source of sameCategory) {
+        const srcMat = getMaterial(source.item);
+        if (!srcMat || srcMat.type === needMat.type) continue;
+
+        // Check if we should downgrade this to match other materials at target quality
+        if (srcMat.quality > needMat.quality && srcMat.type !== needMat.type) {
+          // Calculate how much we'd have at target quality after downgrading
+          const yieldPerUnit = Math.pow(TRADE_DOWN_YIELD, srcMat.quality - needMat.quality);
+          const potentialAtTargetQuality = source.quantity * yieldPerUnit;
+
+          // Check if we have existing inventory at the intermediate quality (target quality, source type)
+          const intermediateItems = getMaterialsAtTypeQuality(srcMat.type, needMat.quality);
+          let existingAtIntermediate = 0;
+          for (const intItem of intermediateItems) {
+            const existing = inv.find(i => i.item === intItem.item && i.quantity > 0);
+            if (existing) {
+              existingAtIntermediate += existing.quantity;
+            }
+          }
+
+          // If pooling would give us enough for the cross-type conversion
+          const neededForCrossType = need.quantity * TRADE_ACROSS_COST;
+          const totalAfterPooling = potentialAtTargetQuality + existingAtIntermediate;
+
+          if (totalAfterPooling >= neededForCrossType && existingAtIntermediate > 0) {
+            // Downgrade source to intermediate quality
+            const intermediateItem = intermediateItems[0];
+            if (intermediateItem) {
+              const downgradeOutput = source.quantity * yieldPerUnit;
+              const downgradeRatio = srcMat.quality === needMat.quality + 1 ? '1:3' : `1:${yieldPerUnit}`;
+
+              trades.push({
+                action: 'DOWNGRADE',
+                input: { item: source.item, type: srcMat.type, quality: srcMat.quality, amount: source.quantity },
+                output: { item: intermediateItem.item, type: srcMat.type, quality: needMat.quality, amount: downgradeOutput },
+                ratio: downgradeRatio
+              });
+
+              // Update inventory: remove source, add to intermediate
+              source.quantity = 0;
+              const existingIntermediate = inv.find(i => i.item === intermediateItem.item);
+              if (existingIntermediate) {
+                existingIntermediate.quantity += downgradeOutput;
+              } else {
+                inv.push({ item: intermediateItem.item, quantity: downgradeOutput });
+              }
+            }
+          }
+        }
+      }
+    }
 
     const options = [];
 
@@ -610,6 +715,25 @@ export function optimizeTrading(inventory, needs) {
       }
     }
 
+    // After processing conversions for this need, check if remainders can directly fulfill other needs
+    for (const otherNeed of req) {
+      if (otherNeed === need || otherNeed.quantity <= 0) continue;
+      const match = inv.find(i => i.item === otherNeed.item);
+      if (match && match.quantity > 0) {
+        const take = Math.min(match.quantity, otherNeed.quantity);
+        match.quantity -= take;
+        otherNeed.quantity -= take;
+        if (take > 0) {
+          fulfilled.push({
+            item: otherNeed.item,
+            quantity: take,
+            method: 'DIRECT',
+            material: getMaterial(otherNeed.item)
+          });
+        }
+      }
+    }
+
     if (need.quantity > 0) {
       unfulfilled.push({
         item: need.item,
@@ -621,13 +745,22 @@ export function optimizeTrading(inventory, needs) {
 
   // Group trades by base material type
   const groupedTrades = groupTradesByBaseType(trades);
-  
-  return { 
-    trades, 
+
+  // Sort fulfilled back to original order for user expectations
+  fulfilled.sort((a, b) => {
+    const needA = req.find(n => n.item === a.item);
+    const needB = req.find(n => n.item === b.item);
+    const orderA = needA ? originalOrder.get(needA) : Infinity;
+    const orderB = needB ? originalOrder.get(needB) : Infinity;
+    return orderA - orderB;
+  });
+
+  return {
+    trades,
     groupedTrades,
-    fulfilled, 
-    unfulfilled, 
-    remainingInventory: inv.filter(i => i.quantity > 0) 
+    fulfilled,
+    unfulfilled,
+    remainingInventory: inv.filter(i => i.quantity > 0)
   };
 }
 
