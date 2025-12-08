@@ -656,7 +656,6 @@ function findOptimalConversionPath(srcMat, targetMat, availableAmount, targetQua
 function directConversionStrategy(srcMat, targetMat, inputAmount, targetQuantity, _totalNeeded) {
   const steps = [];
   const currentType = srcMat.type;
-  const startQuality = srcMat.quality;
   let currentQuality = srcMat.quality;
   let currentAmount = inputAmount;
   let currentItem = srcMat.item;
