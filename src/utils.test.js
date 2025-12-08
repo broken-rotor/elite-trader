@@ -385,16 +385,18 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have a downgrade trade
-      expect(result.trades.length).toBeGreaterThan(0);
+      expect(result.trades.length).toBe(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(2);
       expect(downgradeTrade.output.quality).toBe(1);
       expect(downgradeTrade.ratio).toBe('1:3');
+      expect(downgradeTrade.input.amount).toBe(1);
       expect(downgradeTrade.output.amount).toBe(3);
+      expect(downgradeTrade.remainder).toBeUndefined();
     });
 
-    test('downgrade 2x grade 3 to 18x grade 1 (multi-step)', () => {
+    test('downgrade 2x grade 3 to 18x grade 1 (combined multi-step)', () => {
       // Niobium is Raw (Raw material 1) quality 3
       // Carbon is Raw (Raw material 1) quality 1
       const inventory = [{ item: 'Niobium', quantity: 2 }];
@@ -409,8 +411,15 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have downgrade trades
-      const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBeGreaterThanOrEqual(1);
+      expect(result.trades.length).toBe(1);
+      const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
+      expect(downgradeTrade).toBeDefined();
+      expect(downgradeTrade.input.quality).toBe(3);
+      expect(downgradeTrade.output.quality).toBe(1);
+      expect(downgradeTrade.ratio).toBe('1:9');
+      expect(downgradeTrade.input.amount).toBe(2);
+      expect(downgradeTrade.output.amount).toBe(18);
+      expect(downgradeTrade.remainder).toBeUndefined();
     });
   });
 
@@ -431,7 +440,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBeGreaterThan(0);
+      expect(result.trades.length).toBe(1);
       const upgradeTrade = result.trades.find(t => t.action === 'UPGRADE');
       expect(upgradeTrade).toBeDefined();
       expect(upgradeTrade.input.quality).toBe(1);
@@ -439,21 +448,34 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(upgradeTrade.ratio).toBe('6:1');
       expect(upgradeTrade.input.amount).toBe(6);
       expect(upgradeTrade.output.amount).toBe(1);
+      expect(upgradeTrade.remainder).toBeUndefined();
     });
 
-    test('upgrade 12x grade 1 to 2x grade 2 (multiple conversions)', () => {
+    test('upgrade 12x grade 1 to 2x grade 2 (combined multi-step)', () => {
       // Carbon is Raw (Raw material 1) quality 1
-      // Vanadium is Raw (Raw material 1) quality 2
-      const inventory = [{ item: 'Carbon', quantity: 12 }];
-      const needs = [{ item: 'Vanadium', quantity: 2 }];
+      // Niobium is Raw (Raw material 1) quality 3
+      const inventory = [{ item: 'Carbon', quantity: 72 }];
+      const needs = [{ item: 'Niobium', quantity: 2 }];
 
       const result = optimizeTrading(inventory, needs);
 
       // Should fully fulfill the need
       expect(result.fulfilled).toHaveLength(1);
-      expect(result.fulfilled[0].item).toBe('Vanadium');
+      expect(result.fulfilled[0].item).toBe('Niobium');
       expect(result.fulfilled[0].quantity).toBe(2);
+      expect(result.fulfilled[0].method).toBe('CONVERTED');
       expect(result.unfulfilled).toHaveLength(0);
+
+      // Should have an upgrade trade
+      expect(result.trades.length).toBe(1);
+      const upgradeTrade = result.trades.find(t => t.action === 'UPGRADE');
+      expect(upgradeTrade).toBeDefined();
+      expect(upgradeTrade.input.quality).toBe(1);
+      expect(upgradeTrade.output.quality).toBe(3);
+      expect(upgradeTrade.ratio).toBe('36:1');
+      expect(upgradeTrade.input.amount).toBe(72);
+      expect(upgradeTrade.output.amount).toBe(2);
+      expect(upgradeTrade.remainder).toBeUndefined();
     });
   });
 
@@ -470,12 +492,19 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled).toHaveLength(1);
       expect(result.fulfilled[0].item).toBe('Carbon');
       expect(result.fulfilled[0].quantity).toBe(2);
+      expect(result.fulfilled[0].method).toBe('CONVERTED');
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Check the downgrade produced 3 total
+      // Should have an upgrade trade
+      expect(result.trades.length).toBe(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
+      expect(downgradeTrade.input.quality).toBe(2);
+      expect(downgradeTrade.output.quality).toBe(1);
+      expect(downgradeTrade.ratio).toBe('1:3');
+      expect(downgradeTrade.input.amount).toBe(1);
       expect(downgradeTrade.output.amount).toBe(3);
+      expect(downgradeTrade.remainder).toBeUndefined();
 
       // The remaining inventory should show leftover Carbon
       const remainingCarbon = result.remainingInventory.find(i => i.item === 'Carbon');
@@ -491,13 +520,25 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       const result = optimizeTrading(inventory, needs);
 
-      // Should fulfill all 5 we need
+      // Should fulfill only 2 (what we need), but conversion produces 3
       expect(result.fulfilled).toHaveLength(1);
       expect(result.fulfilled[0].item).toBe('Carbon');
       expect(result.fulfilled[0].quantity).toBe(5);
+      expect(result.fulfilled[0].method).toBe('CONVERTED');
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Conversion produces 6 total (2 * 3 = 6)
+      // Should have an upgrade trade
+      expect(result.trades.length).toBe(1);
+      const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
+      expect(downgradeTrade).toBeDefined();
+      expect(downgradeTrade.input.quality).toBe(2);
+      expect(downgradeTrade.output.quality).toBe(1);
+      expect(downgradeTrade.ratio).toBe('1:3');
+      expect(downgradeTrade.input.amount).toBe(2);
+      expect(downgradeTrade.output.amount).toBe(6);
+      expect(downgradeTrade.remainder).toBeUndefined();
+
+      // The remaining inventory should show leftover Carbon
       const remainingCarbon = result.remainingInventory.find(i => i.item === 'Carbon');
       expect(remainingCarbon).toBeDefined();
       expect(remainingCarbon.quantity).toBe(1); // 1 leftover
@@ -517,21 +558,19 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled).toHaveLength(1);
       expect(result.fulfilled[0].item).toBe('Carbon');
       expect(result.fulfilled[0].quantity).toBe(9);
+      expect(result.fulfilled[0].method).toBe('CONVERTED');
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have 2 downgrade steps (G3→G2, G2→G1)
-      const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBe(2);
-
-      // First downgrade: G3→G2 = 3 units
-      expect(downgradeTrades[0].input.quality).toBe(3);
-      expect(downgradeTrades[0].output.quality).toBe(2);
-      expect(downgradeTrades[0].output.amount).toBe(3);
-
-      // Second downgrade: 3xG2→9xG1
-      expect(downgradeTrades[1].input.quality).toBe(2);
-      expect(downgradeTrades[1].output.quality).toBe(1);
-      expect(downgradeTrades[1].output.amount).toBe(9);
+      // Should have an upgrade trade
+      expect(result.trades.length).toBe(1);
+      const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
+      expect(downgradeTrade).toBeDefined();
+      expect(downgradeTrade.input.quality).toBe(3);
+      expect(downgradeTrade.output.quality).toBe(1);
+      expect(downgradeTrade.ratio).toBe('1:9');
+      expect(downgradeTrade.input.amount).toBe(1);
+      expect(downgradeTrade.output.amount).toBe(9);
+      expect(downgradeTrade.remainder).toBeUndefined();
     });
 
     test('downgrade 1x grade 4 to 27x grade 1', () => {
@@ -548,9 +587,16 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(27);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have 3 downgrade steps
+      // Should have 1 combined downgrade step (G4→G1)
       const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBe(3);
+      expect(downgradeTrades.length).toBe(1);
+
+      // Combined downgrade: 1xG4→27xG1 (ratio 1:27 = 1:3^3)
+      expect(downgradeTrades[0].input.quality).toBe(4);
+      expect(downgradeTrades[0].output.quality).toBe(1);
+      expect(downgradeTrades[0].ratio).toBe('1:27');
+      expect(downgradeTrades[0].input.amount).toBe(1);
+      expect(downgradeTrades[0].output.amount).toBe(27);
     });
   });
 
@@ -569,21 +615,17 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have 2 upgrade steps (G1→G2, G2→G3)
+      // Should have 1 combined upgrade step (G1→G3)
       const upgradeTrades = result.trades.filter(t => t.action === 'UPGRADE');
-      expect(upgradeTrades.length).toBe(2);
+      expect(upgradeTrades.length).toBe(1);
 
-      // First upgrade: 36xG1→6xG2
+      // Combined upgrade: 36xG1→1xG3 (ratio 36:1 = 6^2:1)
       expect(upgradeTrades[0].input.quality).toBe(1);
-      expect(upgradeTrades[0].output.quality).toBe(2);
+      expect(upgradeTrades[0].output.quality).toBe(3);
+      expect(upgradeTrades[0].ratio).toBe('36:1');
       expect(upgradeTrades[0].input.amount).toBe(36);
-      expect(upgradeTrades[0].output.amount).toBe(6);
-
-      // Second upgrade: 6xG2→1xG3
-      expect(upgradeTrades[1].input.quality).toBe(2);
-      expect(upgradeTrades[1].output.quality).toBe(3);
-      expect(upgradeTrades[1].input.amount).toBe(6);
-      expect(upgradeTrades[1].output.amount).toBe(1);
+      expect(upgradeTrades[0].output.amount).toBe(1);
+      expect(upgradeTrades[0].remainder).toBeUndefined();
     });
 
     test('upgrade 216x grade 1 to 1x grade 4', () => {
@@ -600,9 +642,17 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have 3 upgrade steps
+      // Should have 1 combined upgrade step (G1→G4)
       const upgradeTrades = result.trades.filter(t => t.action === 'UPGRADE');
-      expect(upgradeTrades.length).toBe(3);
+      expect(upgradeTrades.length).toBe(1);
+
+      // Combined upgrade: 216xG1→1xG4 (ratio 216:1 = 6^3:1)
+      expect(upgradeTrades[0].input.quality).toBe(1);
+      expect(upgradeTrades[0].output.quality).toBe(4);
+      expect(upgradeTrades[0].ratio).toBe('216:1');
+      expect(upgradeTrades[0].input.amount).toBe(216);
+      expect(upgradeTrades[0].output.amount).toBe(1);
+      expect(upgradeTrades[0].remainder).toBeUndefined();
     });
   });
 
@@ -627,6 +677,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(crossTypeTrade.ratio).toBe('6:1');
       expect(crossTypeTrade.input.amount).toBe(6);
       expect(crossTypeTrade.output.amount).toBe(1);
+      expect(crossTypeTrade.remainder).toBeUndefined();
     });
 
     test('cross-type with quality upgrade (6x6=36:1 ratio)', () => {
@@ -662,31 +713,63 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].item).toBe('Nickel');
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
+
+      // Should have a cross-type trade
+      const crossTypeTrade = result.trades.find(t => t.action === 'CROSS_TYPE');
+      expect(crossTypeTrade).toBeDefined();
+      expect(crossTypeTrade.ratio).toBe('6:1');
+      expect(crossTypeTrade.input.amount).toBe(6);
+      expect(crossTypeTrade.output.amount).toBe(1);
+      expect(crossTypeTrade.remainder).toBeUndefined();
     });
   });
 
   describe('7. Complex Conversions with Multiple Steps and Remainders', () => {
-    test('convert 1x G5 to 3x G4, then 2x G4 to 6x G1, with 1x G4 remainder', () => {
-      // We'll use Manufactured materials for this test
-      // Proto Radiolic Alloys is Manufactured (Alloys) quality 5
-      // Proto Light Alloys is Manufactured (Alloys) quality 4
-      // Salvaged Alloys is Manufactured (Alloys) quality 1
+    test('convert 1x G4 to 3x G3, then 2x G3 to 6x G2, then 6xG2 to 18x G1, with 1x G3 remainder', () => {
+      // Carbon is Raw (Raw material 1) quality 1
+      // Niobium is Raw (Raw material 1) quality 3
+      // Yttrium is Raw (Raw material 1) quality 4
 
       // Step 1: Convert 1x G5 → 3x G4
-      const inventory = [{ item: 'Proto Radiolic Alloys', quantity: 1 }];
-      const needs = [{ item: 'Salvaged Alloys', quantity: 6 }];
+      const inventory = [{ item: 'Yttrium', quantity: 100 }];
+      const needs = [{ item: 'Carbon', quantity: 18 }];
 
       const result = optimizeTrading(inventory, needs);
 
-      // Should fulfill 6x G1: 1 G5 → 3 G4, then 2 G4 → 6 G2 → 18 G1 (but we only need 6)
+      // Should fulfill 6x G1: 1 G4 → 3 G3, then 2 G3 → 6 G2 → 18 G1 (but we only need 6)
       expect(result.fulfilled).toHaveLength(1);
-      expect(result.fulfilled[0].item).toBe('Salvaged Alloys');
-      expect(result.fulfilled[0].quantity).toBe(6);
+      expect(result.fulfilled[0].item).toBe('Carbon');
+      expect(result.fulfilled[0].quantity).toBe(18);
       expect(result.unfulfilled).toHaveLength(0);
 
-      // Should have downgrade steps
-      const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBeGreaterThan(0);
+      expect(result.trades.length).toBe(2);
+
+      expect(result.trades[0]).toBeDefined();
+      expect(result.trades[0].input.quality).toBe(4);
+      expect(result.trades[0].output.quality).toBe(3);
+      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].input.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(3);
+      expect(result.trades[0].remainder).toBeUndefined();
+
+      expect(result.trades[1]).toBeDefined();
+      expect(result.trades[1].input.quality).toBe(3);
+      expect(result.trades[1].output.quality).toBe(1);
+      expect(result.trades[1].ratio).toBe('1:9');
+      expect(result.trades[1].input.amount).toBe(2);
+      expect(result.trades[1].output.amount).toBe(18);
+      expect(result.trades[1].remainder).toBeDefined();
+      expect(result.trades[1].remainder.amount).toBe(1);
+      expect(result.trades[1].remainder.item).toBe('Niobium');
+
+      // The remaining inventory should show leftover Niobium
+      const remainingNiobium = result.remainingInventory.find(i => i.item === 'Niobium');
+      expect(remainingNiobium).toBeDefined();
+      expect(remainingNiobium.quantity).toBe(1); // 1 leftover
+
+      const remainingYttrium = result.remainingInventory.find(i => i.item === 'Yttrium');
+      expect(remainingYttrium).toBeDefined();
+      expect(remainingYttrium.quantity).toBe(99); // 99 leftover
     });
 
     test('upgrade with remainder: 7x G1 to 1x G2 with 1x G1 remainder', () => {
@@ -776,80 +859,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
     });
   });
 
-  describe('8. Cross-Type Conversion with Intermediate Quality Remainder', () => {
-    test('convert 1x G4 Cat1 to 1x G1 Cat2 with remainder of 1x G3 Cat1', () => {
-      // Yttrium is Raw (Raw material 1) quality 4 - Cat1 G4
-      // Iron is Raw (Raw material 4) quality 1 - Cat2 G1
-      // Expected path:
-      // 1. 1x Yttrium G4 → 3x Niobium G3 (downgrade)
-      // 2. Use 2x Niobium G3 to convert to Iron G1 Cat2
-      // 3. Remainder: 1x Niobium G3
-
-      const inventory = [{ item: 'Yttrium', quantity: 1 }];
-      const needs = [{ item: 'Iron', quantity: 1 }];
-
-      const result = optimizeTrading(inventory, needs);
-
-      // Should fulfill the need for 1x Iron (G1 Cat2)
-      expect(result.fulfilled).toHaveLength(1);
-      expect(result.fulfilled[0].item).toBe('Iron');
-      expect(result.fulfilled[0].quantity).toBe(1);
-      expect(result.unfulfilled).toHaveLength(0);
-
-      // Should have downgrade steps
-      const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBeGreaterThan(0);
-
-      // First downgrade should be G4 → G3
-      const firstDowngrade = downgradeTrades[0];
-      expect(firstDowngrade.input.quality).toBe(4);
-      expect(firstDowngrade.output.quality).toBe(3);
-      expect(firstDowngrade.output.amount).toBe(3);
-
-      // Should have a cross-type trade
-      const crossTypeTrade = result.trades.find(t => t.action === 'CROSS_TYPE');
-      expect(crossTypeTrade).toBeDefined();
-
-      // Check for remainder - should have materials left over
-      // Since we start with 1x G4 → 3x G3, and only use some for conversion
-      // We expect either G3 or lower quality Cat1 materials remaining
-      const hasRemainder = result.remainingInventory.length > 0;
-      expect(hasRemainder).toBe(true);
-
-      // The remainder should include materials from Raw material 1 category
-      const cat1Remainder = result.remainingInventory.find(i => {
-        const mat = getMaterial(i.item);
-        return mat && mat.type === 'Raw (Raw material 1)' && mat.quality >= 1;
-      });
-      expect(cat1Remainder).toBeDefined();
-    });
-
-    test('convert 1x G4 to exactly 1x G1 cross-type requiring partial intermediate conversion', () => {
-      // Selenium is Raw (Raw material 4) quality 4 - Cat1 G4
-      // Nickel is Raw (Raw material 5) quality 1 - Cat2 G1
-      // This requires downgrading and cross-type conversion
-
-      const inventory = [{ item: 'Selenium', quantity: 1 }];
-      const needs = [{ item: 'Nickel', quantity: 1 }];
-
-      const result = optimizeTrading(inventory, needs);
-
-      // Should fulfill the need
-      expect(result.fulfilled).toHaveLength(1);
-      expect(result.fulfilled[0].item).toBe('Nickel');
-      expect(result.fulfilled[0].quantity).toBe(1);
-      expect(result.unfulfilled).toHaveLength(0);
-
-      // Complex conversion should involve multiple steps
-      expect(result.trades.length).toBeGreaterThan(1);
-
-      // Should have leftover materials since 1x G4 = 81x G1 equivalent (3^4)
-      // but we only need 1x G1 cross-type
-      expect(result.remainingInventory.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('9. Edge Cases with Zero and Boundary Conditions', () => {
+  describe('8. Edge Cases with Zero and Boundary Conditions', () => {
     test('exact conversion with no remainder', () => {
       // Exactly 6x G1 for 1x G2
       const inventory = [{ item: 'Carbon', quantity: 6 }];
