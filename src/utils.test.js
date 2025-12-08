@@ -1292,13 +1292,8 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       // Total consumption should be 216 + 6 + 36 = 258
       const remainingCarbon = result.remainingInventory.find(i => i.item === 'Carbon');
-      if (remainingCarbon) {
-        expect(remainingCarbon.quantity).toBe(42); // 300 - 258 = 42
-      } else {
-        // If no Carbon left, that's also valid (might have used slightly more due to rounding)
-        const totalRemaining = result.remainingInventory.reduce((sum, i) => sum + i.quantity, 0);
-        expect(totalRemaining).toBeLessThan(50); // Should have used most of it
-      }
+      expect(remainingCarbon).toBeDefined();
+      expect(remainingCarbon.quantity).toBe(42); // 300 - 258 = 42
 
       // But fulfilled should maintain original order
       expect(result.fulfilled[0].item).toBe('Yttrium');
