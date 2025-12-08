@@ -257,7 +257,7 @@ function App() {
         )}
 
         {/* Results Panel */}
-        <ResultsPanel allNeeds={allNeeds} result={result} />
+        {activeTab !== 'inventory' && <ResultsPanel allNeeds={allNeeds} result={result} />}
 
         {/* Legend */}
         <div className="legend">
