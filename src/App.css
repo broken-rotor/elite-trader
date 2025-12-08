@@ -165,7 +165,7 @@
 
 /* List items */
 .list-container {
-  max-height: 192px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -406,7 +406,7 @@
 }
 
 .trade-list {
-  max-height: 192px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
