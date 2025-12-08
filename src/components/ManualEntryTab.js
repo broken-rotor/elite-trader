@@ -13,7 +13,8 @@ function ManualEntryTab({
   setNewNeedQty,
   addToNeeds,
   manualNeeds,
-  removeFromNeeds
+  removeFromNeeds,
+  updateManualNeedQuantity
 }) {
   return (
     <div className="panel">
@@ -34,9 +35,21 @@ function ManualEntryTab({
           const mat = getMaterial(need.item);
           return (
             <div key={need.item} className={`inv-item ${getQualityBgClass(mat?.quality)}`}>
-              <span className={`name ${getQualityClass(mat?.quality)}`}>{need.item}</span>
-              <span className="quantity amber">×{need.quantity}</span>
-              <button className="btn-remove" onClick={() => removeFromNeeds(need.item)}>✕</button>
+              <div>
+                <span className={`name ${getQualityClass(mat?.quality)}`}>{need.item}</span>
+                <span className="grade-label">G{mat?.quality}</span>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <input
+                  type="number"
+                  className="qty-input-inline"
+                  min="1"
+                  value={need.quantity}
+                  onChange={(e) => updateManualNeedQuantity(need.item, e.target.value)}
+                  style={{width: '80px'}}
+                />
+                <button className="btn-remove" onClick={() => removeFromNeeds(need.item)}>✕</button>
+              </div>
             </div>
           );
         })}

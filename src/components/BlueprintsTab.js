@@ -18,6 +18,7 @@ function BlueprintsTab({
   selectedBlueprints,
   addBlueprint,
   removeBlueprint,
+  updateBlueprintRolls,
   blueprintNeeds
 }) {
   const availableBlueprints = selectedModule ? Object.keys(BLUEPRINTS_DB[selectedModule]?.blueprints || {}) : [];
@@ -80,15 +81,38 @@ function BlueprintsTab({
         {selectedBlueprints.map(bp => {
           const strategyName = REROLL_STRATEGIES[bp.strategy]?.name || 'Unknown';
           return (
-            <div key={bp.id} className="list-item">
-              <span>
-                <span className="module">{BLUEPRINTS_DB[bp.module]?.name}</span>
-                <span style={{color: '#64748b', margin: '0 8px'}}>→</span>
-                <span className="blueprint">{bp.blueprint}</span>
-                <span className="grades">G{bp.fromGrade}-G{bp.toGrade}</span>
-                <span className="rolls">{strategyName}</span>
-              </span>
-              <button className="btn-remove" onClick={() => removeBlueprint(bp.id)}>✕</button>
+            <div key={bp.id} className="list-item blueprint-item">
+              <div className="blueprint-header">
+                <span>
+                  <span className="module">{BLUEPRINTS_DB[bp.module]?.name}</span>
+                  <span style={{color: '#64748b', margin: '0 8px'}}>→</span>
+                  <span className="blueprint">{bp.blueprint}</span>
+                  <span className="grades">G{bp.fromGrade}-G{bp.toGrade}</span>
+                  <span className="rolls">{strategyName}</span>
+                </span>
+                <button className="btn-remove" onClick={() => removeBlueprint(bp.id)}>✕</button>
+              </div>
+              <div className="rolls-editor">
+                {[1, 2, 3, 4, 5].map(grade => (
+                  grade >= bp.fromGrade && grade <= bp.toGrade && (
+                    <div key={grade} className="roll-input-group">
+                      <label className={getQualityClass(grade)}>G{grade}:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={bp.rolls?.[grade] || 1}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          updateBlueprintRolls(bp.id, grade, Math.max(1, Math.min(99, value)));
+                        }}
+                        className="roll-input"
+                      />
+                      <span className="roll-label">rolls</span>
+                    </div>
+                  )
+                ))}
+              </div>
             </div>
           );
         })}

@@ -16,7 +16,8 @@ describe('ManualEntryTab', () => {
     setNewNeedQty: jest.fn(),
     addToNeeds: jest.fn(),
     manualNeeds: [],
-    removeFromNeeds: jest.fn()
+    removeFromNeeds: jest.fn(),
+    updateManualNeedQuantity: jest.fn()
   };
 
   beforeEach(() => {
@@ -60,9 +61,11 @@ describe('ManualEntryTab', () => {
     render(<ManualEntryTab {...defaultProps} manualNeeds={needs} />);
 
     expect(screen.getByText('Iron')).toBeInTheDocument();
-    expect(screen.getByText('×5')).toBeInTheDocument();
     expect(screen.getByText('Nickel')).toBeInTheDocument();
-    expect(screen.getByText('×3')).toBeInTheDocument();
+
+    const inputs = screen.getAllByRole('spinbutton');
+    expect(inputs[1]).toHaveValue(5); // First input is the search qty, second is Iron
+    expect(inputs[2]).toHaveValue(3); // Third is Nickel
   });
 
   test('calls removeFromNeeds when clicking remove button', () => {
@@ -102,5 +105,30 @@ describe('ManualEntryTab', () => {
 
     const ironElement = screen.getByText('Iron');
     expect(ironElement).toHaveClass('quality-1');
+  });
+
+  test('calls updateManualNeedQuantity when changing quantity input', () => {
+    const needs = [{ item: 'Iron', quantity: 5 }];
+
+    render(<ManualEntryTab {...defaultProps} manualNeeds={needs} />);
+
+    const inputs = screen.getAllByRole('spinbutton');
+    const quantityInput = inputs[1]; // First is search qty, second is Iron quantity
+
+    fireEvent.change(quantityInput, { target: { value: '10' } });
+
+    expect(defaultProps.updateManualNeedQuantity).toHaveBeenCalledWith('Iron', '10');
+  });
+
+  test('displays grade labels for materials', () => {
+    const needs = [
+      { item: 'Iron', quantity: 5 },
+      { item: 'Nickel', quantity: 3 }
+    ];
+
+    render(<ManualEntryTab {...defaultProps} manualNeeds={needs} />);
+
+    const gradeLabels = screen.getAllByText(/G[1-5]/);
+    expect(gradeLabels.length).toBeGreaterThan(0);
   });
 });
