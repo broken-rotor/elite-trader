@@ -1,5 +1,5 @@
 import React from 'react';
-import { getMaterial } from '../utils';
+import { getMaterial } from '../database';
 import MaterialSearch from './MaterialSearch';
 
 const getQualityClass = (quality) => `quality-${quality}`;

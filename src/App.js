@@ -3,10 +3,12 @@ import './App.css';
 import {
   MATERIALS_DB,
   getMaterial,
+  BLUEPRINTS_DB
+} from './database';
+import {
   calculateBlueprintCosts,
   optimizeTrading,
-  REROLL_STRATEGIES,
-  BLUEPRINTS_DB
+  REROLL_STRATEGIES
 } from './utils';
 import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BLUEPRINTS_DB, REROLL_STRATEGIES, getMaterial } from '../utils';
+import { BLUEPRINTS_DB, getMaterial } from '../database';
+import { REROLL_STRATEGIES } from '../utils';
 import Tooltip from './Tooltip';
 
 const getQualityClass = (quality) => `quality-${quality}`;
