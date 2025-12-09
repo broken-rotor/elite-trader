@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Tooltip from './Tooltip';
-import { getMaterial } from '../utils';
+import { getMaterial } from '../database';
 
 const getQualityClass = (quality) => `quality-${quality}`;
 
