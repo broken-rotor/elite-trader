@@ -1,7 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Tooltip from './Tooltip';
+import { getMaterial } from '../utils';
 
 const getQualityClass = (quality) => `quality-${quality}`;
+
+// Extract subcategory from type (e.g., "Raw (Raw material 3)" -> "Raw material 3")
+const getSubcategory = (itemName) => {
+  const material = getMaterial(itemName);
+  if (!material?.type) return 'Unknown';
+
+  const match = material.type.match(/\(([^)]+)\)/);
+  return match ? match[1] : material.type;
+};
 
 function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory, undoTrade }) {
   const [tradeTab, setTradeTab] = useState('Raw');
@@ -101,12 +111,12 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                         </span>
                         <span className="input-amt">{trade.input.amount}×</span>
                         <span className={getQualityClass(trade.input.quality)}>
-                          {trade.input.item}
+                          {trade.input.item} ({getSubcategory(trade.input.item)})
                         </span>
                         <span className="arrow">→</span>
                         <span className="output-amt">{trade.output.amount}×</span>
                         <span className={getQualityClass(trade.output.quality)}>
-                          {trade.output.item}
+                          {trade.output.item} ({getSubcategory(trade.output.item)})
                         </span>
                         {trade.remainder && (
                           <span className="remainder">
@@ -114,6 +124,7 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                           </span>
                         )}
                         <span className="ratio">[{trade.ratio}]</span>
+                        <span className="filler"></span>
                         <Tooltip content={tooltipContent} disabled={!canExecute}>
                           <button
                             className="btn-execute-trade"
@@ -162,12 +173,12 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                     </span>
                     <span className="input-amt">{trade.input.amount}×</span>
                     <span className={getQualityClass(trade.input.quality)}>
-                      {trade.input.item}
+                      {trade.input.item} ({getSubcategory(trade.input.item)})
                     </span>
                     <span className="arrow">→</span>
                     <span className="output-amt">{trade.output.amount}×</span>
                     <span className={getQualityClass(trade.output.quality)}>
-                      {trade.output.item}
+                      {trade.output.item} ({getSubcategory(trade.output.item)})
                     </span>
                     {trade.remainder && (
                       <span className="remainder">
