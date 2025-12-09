@@ -621,29 +621,124 @@ export function optimizeTrading(inventory, needs) {
       const costPerUnit = getConversionCost(srcMat.type, srcMat.quality, needMat.type, needMat.quality);
 
       if (costPerUnit > 0 && isFinite(costPerUnit)) {
-        options.push({ source, srcMat, costPerUnit, efficiency: 1 / costPerUnit });
+        // Calculate quality distance to prefer intermediate materials over raw materials
+        const qualityDistance = Math.abs(srcMat.quality - needMat.quality);
+        options.push({ source, srcMat, costPerUnit, qualityDistance, efficiency: 1 / costPerUnit });
       }
     }
 
-    options.sort((a, b) => a.costPerUnit - b.costPerUnit);
+    // Sort by quality distance first (prefer intermediate materials), then by cost
+    options.sort((a, b) => {
+      // Always prefer closer quality to use up intermediate materials first
+      if (a.qualityDistance !== b.qualityDistance) {
+        return a.qualityDistance - b.qualityDistance;
+      }
+      // If same quality distance, prefer lower cost
+      return a.costPerUnit - b.costPerUnit;
+    });
 
     for (const opt of options) {
       if (need.quantity <= 0) break;
       if (opt.source.quantity <= 0) continue;
 
+      // Check if this is a multi-step conversion with potential intermediate materials
+      let effectiveSourceQuantity = opt.source.quantity;
+      let intermediateContribution = 0;
+      let intermediateItemFound = null;
+
+      // If source and target are different types or qualities, check for intermediate materials
+      if (opt.srcMat.type !== needMat.type || opt.srcMat.quality !== needMat.quality) {
+        // Look for intermediate materials at the source's type
+        // The intermediate would be at a quality level between source and target
+        const minQ = Math.min(opt.srcMat.quality, needMat.quality);
+        const maxQ = Math.max(opt.srcMat.quality, needMat.quality);
+
+        for (let q = minQ; q <= maxQ; q++) {
+          if (q === opt.srcMat.quality) continue; // Skip source quality
+
+          const intermediateItems = getMaterialsAtTypeQuality(opt.srcMat.type, q);
+          for (const intItem of intermediateItems) {
+            const existing = inv.find(i => i.item === intItem.item && i.quantity > 0);
+            if (!existing) continue;
+
+            // Check if this intermediate can convert to target
+            const intToTargetCost = getConversionCost(intItem.type, intItem.quality, needMat.type, needMat.quality);
+            if (!isFinite(intToTargetCost)) continue;
+
+            // Check if source can convert to this intermediate
+            const srcToIntCost = getConversionCost(opt.srcMat.type, opt.srcMat.quality, intItem.type, intItem.quality);
+            if (!isFinite(srcToIntCost)) continue;
+
+            // This is a valid intermediate! Calculate how much we can save
+            // How much intermediate do we need total to fulfill the target need?
+            const intermediateNeededTotal = need.quantity * intToTargetCost;
+
+            // We have some intermediate already - even if partial, it reduces what we need to convert
+            const intermediateWeHave = existing.quantity;
+
+            if (intermediateWeHave > 0) {
+              intermediateItemFound = {item: intItem, cost: intToTargetCost};
+
+              // Calculate how much more intermediate we still need
+              const intermediateStillNeeded = Math.max(0, intermediateNeededTotal - intermediateWeHave);
+
+              // How much source do we need to produce the still-needed intermediate?
+              let sourceNeededForIntermediate;
+              let intermediateFromSource = 0;
+              if (opt.srcMat.quality > intItem.quality) {
+                // Downgrade: 1 source → multiple intermediate
+                const yieldPerSource = Math.pow(TRADE_DOWN_YIELD, opt.srcMat.quality - intItem.quality);
+                sourceNeededForIntermediate = Math.ceil(intermediateStillNeeded / yieldPerSource);
+                intermediateFromSource = sourceNeededForIntermediate * yieldPerSource;
+              } else {
+                // Upgrade: need multiple source → 1 intermediate
+                const costPerIntermediate = Math.pow(TRADE_UP_COST, intItem.quality - opt.srcMat.quality);
+                sourceNeededForIntermediate = Math.ceil(intermediateStillNeeded * costPerIntermediate);
+                intermediateFromSource = Math.floor(sourceNeededForIntermediate / costPerIntermediate);
+              }
+
+              effectiveSourceQuantity = Math.min(opt.source.quantity, sourceNeededForIntermediate);
+
+              // Calculate total intermediate after pooling (existing + produced)
+              const totalIntermediate = intermediateWeHave + intermediateFromSource;
+              intermediateContribution = Math.floor(totalIntermediate / intToTargetCost);
+              break;
+            }
+          }
+          if (effectiveSourceQuantity !== opt.source.quantity) break;
+        }
+      }
+
       // Calculate how much we can actually produce with whole number inputs
-      const maxProducible = Math.floor(opt.source.quantity / opt.costPerUnit);
+      // Account for intermediate material contribution
+      const maxProducibleFromSource = Math.floor(effectiveSourceQuantity / opt.costPerUnit);
+      const maxProducible = maxProducibleFromSource + intermediateContribution;
       const toProduce = Math.min(maxProducible, need.quantity);
 
       if (toProduce > 0) {
         // Calculate the exact whole number of source materials needed
-        const consumed = Math.ceil(toProduce * opt.costPerUnit);
+        // If we have intermediate materials, only consume what's needed for the source→intermediate conversion
+        let consumed;
+        if (intermediateContribution > 0) {
+          // We're using intermediate materials, so only consume effectiveSourceQuantity
+          consumed = effectiveSourceQuantity;
+        } else {
+          // No intermediate materials, use full source→target cost
+          consumed = Math.ceil(toProduce * opt.costPerUnit);
+        }
 
         // Ensure we don't consume more than we have
         const actualConsumed = Math.min(consumed, opt.source.quantity);
 
         // Recalculate actual production based on whole number consumption
-        const actualProduced = Math.floor(actualConsumed / opt.costPerUnit);
+        let actualProduced;
+        if (intermediateContribution > 0) {
+          // When using intermediate materials, production is from pooling, not just source
+          actualProduced = toProduce; // We already calculated this correctly above
+        } else {
+          // No intermediate materials, calculate from source consumption
+          actualProduced = Math.floor(actualConsumed / opt.costPerUnit);
+        }
 
         // Only proceed if we can actually produce something
         if (actualProduced > 0 && actualConsumed <= opt.source.quantity) {
@@ -665,7 +760,52 @@ export function optimizeTrading(inventory, needs) {
           opt.source.quantity -= actualConsumed;
           need.quantity -= toFulfill;
 
-          const tradeSteps = generateTradeSteps(opt.srcMat, needMat, inputForTrade, toFulfill, need.quantity + toFulfill);
+          // If we're using intermediate pooling, we need to generate trades that show the pooled amounts
+          let tradeSteps;
+          if (intermediateContribution > 0 && intermediateItemFound) {
+            // We're pooling intermediate materials
+            // Find and consume the existing intermediate from inventory
+            const existingInt = inv.find(i => i.item === intermediateItemFound.item.item && i.quantity > 0);
+            const intermediateUsed = existingInt ? existingInt.quantity : 0;
+
+            // Calculate how much intermediate we're producing from source
+            let intermediateProduced = 0;
+            if (opt.srcMat.quality > intermediateItemFound.item.quality) {
+              // Downgrade
+              const yieldPerSource = Math.pow(TRADE_DOWN_YIELD, opt.srcMat.quality - intermediateItemFound.item.quality);
+              intermediateProduced = actualConsumed * yieldPerSource;
+            } else if (opt.srcMat.quality < intermediateItemFound.item.quality) {
+              // Upgrade
+              const costPerIntermediate = Math.pow(TRADE_UP_COST, intermediateItemFound.item.quality - opt.srcMat.quality);
+              intermediateProduced = Math.floor(actualConsumed / costPerIntermediate);
+            }
+
+            // Total intermediate available
+            const totalIntermediate = intermediateUsed + intermediateProduced;
+
+            // Consume the existing intermediate from inventory
+            if (existingInt && intermediateUsed > 0) {
+              existingInt.quantity -= intermediateUsed;
+            }
+
+            // Generate trades: source → intermediate, then intermediate → target (using total pooled amount)
+            tradeSteps = [];
+
+            // Step 1: source → intermediate (if we're producing any)
+            if (actualConsumed > 0 && intermediateProduced > 0) {
+              const srcToIntSteps = generateTradeSteps(opt.srcMat, intermediateItemFound.item, actualConsumed, intermediateProduced, intermediateProduced);
+              tradeSteps.push(...srcToIntSteps);
+            }
+
+            // Step 2: intermediate → target (using total pooled amount)
+            if (totalIntermediate > 0) {
+              const intToTargetSteps = generateTradeSteps(intermediateItemFound.item, needMat, totalIntermediate, toFulfill, toFulfill);
+              tradeSteps.push(...intToTargetSteps);
+            }
+          } else {
+            // No intermediate pooling, generate trades normally
+            tradeSteps = generateTradeSteps(opt.srcMat, needMat, inputForTrade, toFulfill, need.quantity + toFulfill);
+          }
 
           // Check if the trades produced more than needed at the target quality
           // This happens with single-level downgrades where we can't leave remainder at higher quality
@@ -746,8 +886,38 @@ export function optimizeTrading(inventory, needs) {
   // Group trades by base material type
   const groupedTrades = groupTradesByBaseType(trades);
 
+  // Consolidate fulfilled entries by item
+  const consolidatedFulfilled = [];
+  const fulfilledByItem = new Map();
+
+  for (const entry of fulfilled) {
+    if (!fulfilledByItem.has(entry.item)) {
+      fulfilledByItem.set(entry.item, {
+        item: entry.item,
+        quantity: 0,
+        method: entry.method,
+        material: entry.material,
+        from: entry.from,
+        consumed: 0
+      });
+      consolidatedFulfilled.push(fulfilledByItem.get(entry.item));
+    }
+
+    const consolidated = fulfilledByItem.get(entry.item);
+    consolidated.quantity += entry.quantity;
+
+    // Update method if we have both direct and converted
+    if (consolidated.method === 'DIRECT' && entry.method === 'CONVERTED') {
+      consolidated.method = 'MIXED';
+      consolidated.from = entry.from;
+      consolidated.consumed = entry.consumed;
+    } else if (entry.method === 'CONVERTED') {
+      consolidated.consumed += (entry.consumed || 0);
+    }
+  }
+
   // Sort fulfilled back to original order for user expectations
-  fulfilled.sort((a, b) => {
+  consolidatedFulfilled.sort((a, b) => {
     const needA = req.find(n => n.item === a.item);
     const needB = req.find(n => n.item === b.item);
     const orderA = needA ? originalOrder.get(needA) : Infinity;
@@ -758,7 +928,7 @@ export function optimizeTrading(inventory, needs) {
   return {
     trades,
     groupedTrades,
-    fulfilled,
+    fulfilled: consolidatedFulfilled,
     unfulfilled,
     remainingInventory: inv.filter(i => i.quantity > 0)
   };

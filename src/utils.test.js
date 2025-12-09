@@ -385,7 +385,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have a downgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(2);
@@ -411,7 +411,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have downgrade trades
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(3);
@@ -440,7 +440,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const upgradeTrade = result.trades.find(t => t.action === 'UPGRADE');
       expect(upgradeTrade).toBeDefined();
       expect(upgradeTrade.input.quality).toBe(1);
@@ -467,7 +467,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const upgradeTrade = result.trades.find(t => t.action === 'UPGRADE');
       expect(upgradeTrade).toBeDefined();
       expect(upgradeTrade.input.quality).toBe(1);
@@ -496,7 +496,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(2);
@@ -528,7 +528,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(2);
@@ -562,7 +562,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have an upgrade trade
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
       const downgradeTrade = result.trades.find(t => t.action === 'DOWNGRADE');
       expect(downgradeTrade).toBeDefined();
       expect(downgradeTrade.input.quality).toBe(3);
@@ -589,7 +589,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       // Should have 1 combined downgrade step (G4→G1)
       const downgradeTrades = result.trades.filter(t => t.action === 'DOWNGRADE');
-      expect(downgradeTrades.length).toBe(1);
+      expect(downgradeTrades).toHaveLength(1);
 
       // Combined downgrade: 1xG4→27xG1 (ratio 1:27 = 1:3^3)
       expect(downgradeTrades[0].input.quality).toBe(4);
@@ -617,7 +617,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       // Should have 1 combined upgrade step (G1→G3)
       const upgradeTrades = result.trades.filter(t => t.action === 'UPGRADE');
-      expect(upgradeTrades.length).toBe(1);
+      expect(upgradeTrades).toHaveLength(1);
 
       // Combined upgrade: 36xG1→1xG3 (ratio 36:1 = 6^2:1)
       expect(upgradeTrades[0].input.quality).toBe(1);
@@ -644,7 +644,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       // Should have 1 combined upgrade step (G1→G4)
       const upgradeTrades = result.trades.filter(t => t.action === 'UPGRADE');
-      expect(upgradeTrades.length).toBe(1);
+      expect(upgradeTrades).toHaveLength(1);
 
       // Combined upgrade: 216xG1→1xG4 (ratio 216:1 = 6^3:1)
       expect(upgradeTrades[0].input.quality).toBe(1);
@@ -742,7 +742,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(18);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(2);
+      expect(result.trades).toHaveLength(2);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(4);
@@ -930,7 +930,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -958,7 +958,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(1);
+      expect(result.trades).toHaveLength(1);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -986,7 +986,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(2);
+      expect(result.trades).toHaveLength(2);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -1023,7 +1023,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(3);
+      expect(result.trades).toHaveLength(3);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -1069,7 +1069,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(4);
+      expect(result.trades).toHaveLength(4);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -1131,7 +1131,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[2].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(3);
+      expect(result.trades).toHaveLength(3);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -1180,7 +1180,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades.length).toBe(2);
+      expect(result.trades).toHaveLength(2);
 
       expect(result.trades[0]).toBeDefined();
       expect(result.trades[0].input.quality).toBe(5);
@@ -1196,6 +1196,86 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[1].input.amount).toBe(6);
       expect(result.trades[1].output.amount).toBe(1);
       expect(result.trades[1].remainder).toBeUndefined();
+    });
+
+    test('pools intermediate materials to minimize source consumption', () => {
+      const inventory = [
+        { item: 'Arsenic', quantity: 10 },
+        { item: 'Cadmium', quantity: 2 },
+        { item: 'Manganese', quantity: 9 },
+        { item: 'Phosphorus', quantity: 3 },
+        { item: 'Ruthenium', quantity: 25 }
+      ];
+      const needs = [
+        { item: 'Manganese', quantity: 10 },
+        { item: 'Phosphorus', quantity: 4 },
+        { item: 'Arsenic', quantity: 12 },
+      ];
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Expected Trades
+      // Trade 1: 1x Ruthenium -> 3x Cadmium
+      // Trade 2: 1x Cadmium -> 3x Manganese
+      // Trade 3: 2x Manganese -> 1x Phosphorus
+      // Trade 4: 4x Cadmium -> 2x Arsenic
+
+      // All needs should be fulfilled
+      expect(result.fulfilled).toHaveLength(3);
+      expect(result.fulfilled[0].item).toBe('Manganese');
+      expect(result.fulfilled[0].quantity).toBe(10);
+      expect(result.fulfilled[1].item).toBe('Phosphorus');
+      expect(result.fulfilled[1].quantity).toBe(4);
+      expect(result.fulfilled[2].item).toBe('Arsenic');
+      expect(result.fulfilled[2].quantity).toBe(12);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      expect(result.trades).toHaveLength(4);
+
+      // Trade 1: 1x Ruthenium -> 3x Cadmium (downgrade)
+      const rutheniumTrade = result.trades.find(t => t.input.item === 'Ruthenium');
+      expect(rutheniumTrade).toBeDefined();
+      expect(rutheniumTrade.action).toBe('DOWNGRADE');
+      expect(rutheniumTrade.input.amount).toBe(1);
+      expect(rutheniumTrade.output.amount).toBe(3);
+      expect(rutheniumTrade.output.item).toBe('Cadmium');
+      expect(rutheniumTrade.ratio).toBe('1:3');
+
+      // Trade 2: 1x Cadmium -> 3x Manganese (downgrade)
+      const cadmiumToManganeseTrade = result.trades.find(t =>
+        t.input.item === 'Cadmium' && t.output.item === 'Manganese'
+      );
+      expect(cadmiumToManganeseTrade).toBeDefined();
+      expect(cadmiumToManganeseTrade.action).toBe('DOWNGRADE');
+      expect(cadmiumToManganeseTrade.input.amount).toBe(1);
+      expect(cadmiumToManganeseTrade.output.amount).toBe(3);
+      expect(cadmiumToManganeseTrade.ratio).toBe('1:3');
+
+      // Trade 3: 2x Manganese -> 1x Phosphorus (cross-type with downgrade)
+      const manganeseToPhosphorusTrade = result.trades.find(t =>
+        t.input.item === 'Manganese' && t.output.item === 'Phosphorus'
+      );
+      expect(manganeseToPhosphorusTrade).toBeDefined();
+      expect(manganeseToPhosphorusTrade.action).toBe('CROSS_TYPE');
+      expect(manganeseToPhosphorusTrade.input.amount).toBe(2);
+      expect(manganeseToPhosphorusTrade.output.amount).toBe(1);
+      expect(manganeseToPhosphorusTrade.ratio).toBe('2:1');
+
+
+      // Trade 4: 4x Cadmium -> 2x Arsenic (cross-type with downgrade)
+      const cadmiumToArsenicTrade = result.trades.find(t =>
+        t.input.item === 'Cadmium' && t.output.item === 'Arsenic'
+      );
+      expect(cadmiumToArsenicTrade).toBeDefined();
+      expect(cadmiumToArsenicTrade.action).toBe('CROSS_TYPE');
+      expect(cadmiumToArsenicTrade.input.amount).toBe(4);
+      expect(cadmiumToArsenicTrade.output.amount).toBe(2);
+      expect(cadmiumToArsenicTrade.ratio).toBe('2:1');
+
+      // The remaining inventory should show leftover Ruthenium
+      const remainingRuthenium = result.remainingInventory.find(i => i.item === 'Ruthenium');
+      expect(remainingRuthenium).toBeDefined();
+      expect(remainingRuthenium.quantity).toBe(24);
     });
   });
 
@@ -1229,9 +1309,9 @@ describe('Trading Edge Cases - Comprehensive', () => {
       const result3 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs3);
 
       // All three should produce the same number of trades (optimal = 3)
-      expect(result1.trades.length).toBe(3);
-      expect(result2.trades.length).toBe(3);
-      expect(result3.trades.length).toBe(3);
+      expect(result1.trades).toHaveLength(3);
+      expect(result2.trades).toHaveLength(3);
+      expect(result3.trades).toHaveLength(3);
 
       // All needs should be fulfilled
       expect(result1.fulfilled).toHaveLength(3);
