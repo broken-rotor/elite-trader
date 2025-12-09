@@ -5,7 +5,8 @@ import {
   getMaterial,
   calculateBlueprintCosts,
   optimizeTrading,
-  REROLL_STRATEGIES
+  REROLL_STRATEGIES,
+  BLUEPRINTS_DB
 } from './utils';
 import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';
@@ -45,6 +46,10 @@ function App() {
     }
     return [];
   });
+
+  // History for undo functionality
+  const [rollHistory, setRollHistory] = useState([]);
+  const [tradeHistory, setTradeHistory] = useState([]);
 
   const [searchOwned, setSearchOwned] = useState('');
   const [searchNeeded, setSearchNeeded] = useState('');
@@ -160,6 +165,83 @@ function App() {
     ));
   };
 
+  const performBlueprintRoll = (blueprintId, grade) => {
+    const blueprint = selectedBlueprints.find(bp => bp.id === blueprintId);
+    if (!blueprint) return;
+
+    const currentRolls = blueprint.rolls?.[grade] ?? 1;
+    if (currentRolls <= 0) return;
+
+    // Get materials needed for this grade
+    const moduleData = BLUEPRINTS_DB[blueprint.module];
+    if (!moduleData) return;
+
+    const blueprintData = moduleData.blueprints[blueprint.blueprint];
+    if (!blueprintData) return;
+
+    const gradeMats = blueprintData.grades[grade];
+    if (!gradeMats) return;
+
+    // Check if we have enough materials
+    const newInventory = [...inventory];
+    const materialsNeeded = gradeMats.map(m => ({ item: m.item, qty: m.qty }));
+
+    // Check availability
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      if (!invItem || invItem.quantity < needed.qty) {
+        alert(`Not enough ${needed.item}. Need ${needed.qty}, have ${invItem?.quantity || 0}`);
+        return;
+      }
+    }
+
+    // Record this action for undo
+    const historyEntry = {
+      id: Date.now(),
+      blueprintId,
+      grade,
+      moduleName: moduleData.name,
+      blueprintName: blueprint.blueprint,
+      materialsConsumed: materialsNeeded.map(m => ({ ...m })),
+      previousRolls: currentRolls
+    };
+
+    // Deduct materials
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      invItem.quantity -= needed.qty;
+    }
+
+    // Filter out zero-quantity items
+    setInventory(newInventory.filter(i => i.quantity > 0));
+
+    // Reduce roll count
+    updateBlueprintRolls(blueprintId, grade, Math.max(0, currentRolls - 1));
+
+    // Add to history
+    setRollHistory([historyEntry, ...rollHistory]);
+  };
+
+  const undoRoll = (historyEntry) => {
+    // Restore materials
+    const newInventory = [...inventory];
+    for (const material of historyEntry.materialsConsumed) {
+      const invItem = newInventory.find(i => i.item === material.item);
+      if (invItem) {
+        invItem.quantity += material.qty;
+      } else {
+        newInventory.push({ item: material.item, quantity: material.qty });
+      }
+    }
+    setInventory(newInventory);
+
+    // Restore roll count
+    updateBlueprintRolls(historyEntry.blueprintId, historyEntry.grade, historyEntry.previousRolls);
+
+    // Remove from history
+    setRollHistory(rollHistory.filter(h => h.id !== historyEntry.id));
+  };
+
   const removeFromInventory = (item) =>
     setInventory(inventory.filter(i => i.item !== item));
 
@@ -186,6 +268,82 @@ function App() {
         i.item === item ? { ...i, quantity: qty } : i
       ));
     }
+  };
+
+  const executeTrade = (trade) => {
+    const newInventory = [...inventory];
+
+    // Subtract input materials
+    const inputItem = newInventory.find(i => i.item === trade.input.item);
+    if (!inputItem || inputItem.quantity < trade.input.amount) {
+      alert(`Not enough ${trade.input.item}. Need ${trade.input.amount}, have ${inputItem?.quantity || 0}`);
+      return;
+    }
+
+    // Record this action for undo
+    const historyEntry = {
+      id: Date.now(),
+      trade: JSON.parse(JSON.stringify(trade)) // Deep copy the trade
+    };
+
+    inputItem.quantity -= trade.input.amount;
+
+    // Add output materials
+    const outputItem = newInventory.find(i => i.item === trade.output.item);
+    if (outputItem) {
+      outputItem.quantity += trade.output.amount;
+    } else {
+      newInventory.push({ item: trade.output.item, quantity: trade.output.amount });
+    }
+
+    // Add remainder if present
+    if (trade.remainder && trade.remainder.amount > 0) {
+      const remainderItem = newInventory.find(i => i.item === trade.remainder.item);
+      if (remainderItem) {
+        remainderItem.quantity += trade.remainder.amount;
+      } else {
+        newInventory.push({ item: trade.remainder.item, quantity: trade.remainder.amount });
+      }
+    }
+
+    // Filter out zero-quantity items
+    setInventory(newInventory.filter(i => i.quantity > 0));
+
+    // Add to history
+    setTradeHistory([historyEntry, ...tradeHistory]);
+  };
+
+  const undoTrade = (historyEntry) => {
+    const trade = historyEntry.trade;
+    const newInventory = [...inventory];
+
+    // Restore input materials
+    const inputItem = newInventory.find(i => i.item === trade.input.item);
+    if (inputItem) {
+      inputItem.quantity += trade.input.amount;
+    } else {
+      newInventory.push({ item: trade.input.item, quantity: trade.input.amount });
+    }
+
+    // Remove output materials
+    const outputItem = newInventory.find(i => i.item === trade.output.item);
+    if (outputItem) {
+      outputItem.quantity -= trade.output.amount;
+    }
+
+    // Remove remainder if present
+    if (trade.remainder && trade.remainder.amount > 0) {
+      const remainderItem = newInventory.find(i => i.item === trade.remainder.item);
+      if (remainderItem) {
+        remainderItem.quantity -= trade.remainder.amount;
+      }
+    }
+
+    // Filter out zero-quantity items
+    setInventory(newInventory.filter(i => i.quantity > 0));
+
+    // Remove from history
+    setTradeHistory(tradeHistory.filter(h => h.id !== historyEntry.id));
   };
 
   const filteredInventoryByCategory = useMemo(() => {
@@ -244,7 +402,11 @@ function App() {
             addBlueprint={addBlueprint}
             removeBlueprint={removeBlueprint}
             updateBlueprintRolls={updateBlueprintRolls}
+            performBlueprintRoll={performBlueprintRoll}
             blueprintNeeds={blueprintNeeds}
+            inventory={inventory}
+            rollHistory={rollHistory}
+            undoRoll={undoRoll}
           />
         )}
 
@@ -279,7 +441,16 @@ function App() {
         )}
 
         {/* Results Panel */}
-        {activeTab !== 'inventory' && <ResultsPanel allNeeds={allNeeds} result={result} />}
+        {activeTab !== 'inventory' && (
+          <ResultsPanel
+            allNeeds={allNeeds}
+            result={result}
+            executeTrade={executeTrade}
+            inventory={inventory}
+            tradeHistory={tradeHistory}
+            undoTrade={undoTrade}
+          />
+        )}
 
         {/* Legend */}
         <div className="legend">

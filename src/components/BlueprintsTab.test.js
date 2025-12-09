@@ -17,7 +17,12 @@ describe('BlueprintsTab', () => {
     selectedBlueprints: [],
     addBlueprint: jest.fn(),
     removeBlueprint: jest.fn(),
-    blueprintNeeds: []
+    updateBlueprintRolls: jest.fn(),
+    performBlueprintRoll: jest.fn(),
+    blueprintNeeds: [],
+    inventory: [],
+    rollHistory: [],
+    undoRoll: jest.fn()
   };
 
   beforeEach(() => {

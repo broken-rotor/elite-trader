@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import Tooltip from './Tooltip';
 
 const getQualityClass = (quality) => `quality-${quality}`;
 
-function ResultsPanel({ allNeeds, result }) {
+function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory, undoTrade }) {
   const [tradeTab, setTradeTab] = useState('Raw');
 
   // Get available trade categories - wrapped in useMemo to prevent recreating array on every render
@@ -70,66 +71,122 @@ function ResultsPanel({ allNeeds, result }) {
               {/* Display trades for active tab */}
               {result.groupedTrades[tradeTab] && (
                 <div className="trade-list">
-                  {result.groupedTrades[tradeTab].map((trade, i) => (
-                    <div key={i} className="trade-item">
-                      <span className={`trade-badge ${
-                        trade.action === 'UPGRADE' ? 'upgrade' :
-                        trade.action === 'DOWNGRADE' ? 'downgrade' :
-                        trade.action === 'CROSS_TYPE' ? 'cross-type' :
-                        trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
-                      }`}>
-                        {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
-                      </span>
-                      <span className="input-amt">{trade.input.amount}×</span>
-                      <span className={getQualityClass(trade.input.quality)}>
-                        {trade.input.item}
-                      </span>
-                      <span className="arrow">→</span>
-                      <span className="output-amt">{trade.output.amount}×</span>
-                      <span className={getQualityClass(trade.output.quality)}>
-                        {trade.output.item}
-                      </span>
-                      {trade.remainder && (
-                        <span className="remainder">
-                          {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+                  {result.groupedTrades[tradeTab].map((trade, i) => {
+                    // Check if we have enough input materials
+                    const inputItem = inventory.find(item => item.item === trade.input.item);
+                    const canExecute = inputItem && inputItem.quantity >= trade.input.amount;
+
+                    // Build tooltip content
+                    const tooltipContent = canExecute ? (
+                      <span>Execute this trade</span>
+                    ) : (
+                      <div>
+                        <div className="tooltip-content-line">Missing:</div>
+                        <div className="tooltip-content-line">
+                          <span className={getQualityClass(trade.input.quality)}>{trade.input.item}</span>
+                          {' '}(need {trade.input.amount}, have {inputItem?.quantity || 0})
+                        </div>
+                      </div>
+                    );
+
+                    return (
+                      <div key={i} className="trade-item">
+                        <span className={`trade-badge ${
+                          trade.action === 'UPGRADE' ? 'upgrade' :
+                          trade.action === 'DOWNGRADE' ? 'downgrade' :
+                          trade.action === 'CROSS_TYPE' ? 'cross-type' :
+                          trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                        }`}>
+                          {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
                         </span>
-                      )}
-                      <span className="ratio">[{trade.ratio}]</span>
-                    </div>
-                  ))}
+                        <span className="input-amt">{trade.input.amount}×</span>
+                        <span className={getQualityClass(trade.input.quality)}>
+                          {trade.input.item}
+                        </span>
+                        <span className="arrow">→</span>
+                        <span className="output-amt">{trade.output.amount}×</span>
+                        <span className={getQualityClass(trade.output.quality)}>
+                          {trade.output.item}
+                        </span>
+                        {trade.remainder && (
+                          <span className="remainder">
+                            {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+                          </span>
+                        )}
+                        <span className="ratio">[{trade.ratio}]</span>
+                        <Tooltip content={tooltipContent} disabled={!canExecute}>
+                          <button
+                            className="btn-execute-trade"
+                            onClick={() => executeTrade(trade)}
+                            disabled={!canExecute}
+                          >
+                            Execute
+                          </button>
+                        </Tooltip>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </>
           ) : (
             // Fallback to ungrouped trades if grouping failed
             <div className="trade-list">
-              {result.trades.map((trade, i) => (
-                <div key={i} className="trade-item">
-                  <span className={`trade-badge ${
-                    trade.action === 'UPGRADE' ? 'upgrade' :
-                    trade.action === 'DOWNGRADE' ? 'downgrade' :
-                    trade.action === 'CROSS_TYPE' ? 'cross-type' :
-                    trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
-                  }`}>
-                    {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
-                  </span>
-                  <span className="input-amt">{trade.input.amount}×</span>
-                  <span className={getQualityClass(trade.input.quality)}>
-                    {trade.input.item}
-                  </span>
-                  <span className="arrow">→</span>
-                  <span className="output-amt">{trade.output.amount}×</span>
-                  <span className={getQualityClass(trade.output.quality)}>
-                    {trade.output.item}
-                  </span>
-                  {trade.remainder && (
-                    <span className="remainder">
-                      {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+              {result.trades.map((trade, i) => {
+                // Check if we have enough input materials
+                const inputItem = inventory.find(item => item.item === trade.input.item);
+                const canExecute = inputItem && inputItem.quantity >= trade.input.amount;
+
+                // Build tooltip content
+                const tooltipContent = canExecute ? (
+                  <span>Execute this trade</span>
+                ) : (
+                  <div>
+                    <div className="tooltip-content-line">Missing:</div>
+                    <div className="tooltip-content-line">
+                      <span className={getQualityClass(trade.input.quality)}>{trade.input.item}</span>
+                      {' '}(need {trade.input.amount}, have {inputItem?.quantity || 0})
+                    </div>
+                  </div>
+                );
+
+                return (
+                  <div key={i} className="trade-item">
+                    <span className={`trade-badge ${
+                      trade.action === 'UPGRADE' ? 'upgrade' :
+                      trade.action === 'DOWNGRADE' ? 'downgrade' :
+                      trade.action === 'CROSS_TYPE' ? 'cross-type' :
+                      trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                    }`}>
+                      {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
                     </span>
-                  )}
-                  <span className="ratio">[{trade.ratio}]</span>
-                </div>
-              ))}
+                    <span className="input-amt">{trade.input.amount}×</span>
+                    <span className={getQualityClass(trade.input.quality)}>
+                      {trade.input.item}
+                    </span>
+                    <span className="arrow">→</span>
+                    <span className="output-amt">{trade.output.amount}×</span>
+                    <span className={getQualityClass(trade.output.quality)}>
+                      {trade.output.item}
+                    </span>
+                    {trade.remainder && (
+                      <span className="remainder">
+                        {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
+                      </span>
+                    )}
+                    <span className="ratio">[{trade.ratio}]</span>
+                    <Tooltip content={tooltipContent} disabled={!canExecute}>
+                      <button
+                        className="btn-execute-trade"
+                        onClick={() => executeTrade(trade)}
+                        disabled={!canExecute}
+                      >
+                        Execute
+                      </button>
+                    </Tooltip>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -169,6 +226,35 @@ function ResultsPanel({ allNeeds, result }) {
           )}
         </div>
       </div>
+
+      {/* Trade History */}
+      {tradeHistory.length > 0 && (
+        <div className="trade-history">
+          <h3 className="purple">Recent Trades</h3>
+          <div className="history-list">
+            {tradeHistory.slice(0, 5).map((entry) => (
+              <div key={entry.id} className="history-item">
+                <span className="history-text">
+                  <span className={getQualityClass(entry.trade.input.quality)}>
+                    {entry.trade.input.amount}× {entry.trade.input.item}
+                  </span>
+                  <span className="arrow"> → </span>
+                  <span className={getQualityClass(entry.trade.output.quality)}>
+                    {entry.trade.output.amount}× {entry.trade.output.item}
+                  </span>
+                </span>
+                <button
+                  className="btn-undo"
+                  onClick={() => undoTrade(entry)}
+                  title="Undo this trade"
+                >
+                  Undo
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,10 +3,17 @@ import { render, screen } from '@testing-library/react';
 import ResultsPanel from './ResultsPanel';
 
 describe('ResultsPanel', () => {
+  const defaultProps = {
+    executeTrade: jest.fn(),
+    inventory: [],
+    tradeHistory: [],
+    undoTrade: jest.fn()
+  };
+
   test('displays empty state when no needs are provided', () => {
     const result = { trades: [], fulfilled: [], unfulfilled: [] };
 
-    render(<ResultsPanel allNeeds={[]} result={result} />);
+    render(<ResultsPanel allNeeds={[]} result={result} {...defaultProps} />);
 
     expect(screen.getByText('⚡ Optimization Results')).toBeInTheDocument();
     expect(
@@ -22,7 +29,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.queryByText('Trade Sequence')).not.toBeInTheDocument();
   });
@@ -42,7 +49,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('Trade Sequence')).toBeInTheDocument();
     expect(screen.getByText('UPGRADE')).toBeInTheDocument();
@@ -69,7 +76,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     const badge = screen.getByText('DOWNGRADE');
     expect(badge).toHaveClass('downgrade');
@@ -90,7 +97,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     const badge = screen.getByText('CROSS TYPE');
     expect(badge).toHaveClass('cross-type');
@@ -104,7 +111,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('✓ Fulfilled (1)')).toBeInTheDocument();
     expect(screen.getByText('5× Iron')).toBeInTheDocument();
@@ -119,7 +126,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('5× Iron')).toBeInTheDocument();
     expect(screen.getByText('(from Nickel)')).toBeInTheDocument();
@@ -133,7 +140,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('1× Carbon')).toBeInTheDocument();
     expect(screen.getByText('(6× Iron)')).toBeInTheDocument();
@@ -153,7 +160,7 @@ describe('ResultsPanel', () => {
       ]
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('✗ Unfulfilled (1)')).toBeInTheDocument();
     expect(screen.getByText('10× Iron')).toBeInTheDocument();
@@ -168,7 +175,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('All needs fulfilled! 🎉')).toBeInTheDocument();
   });
@@ -187,7 +194,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('✓ Fulfilled (2)')).toBeInTheDocument();
     expect(screen.getByText('5× Iron')).toBeInTheDocument();
@@ -216,7 +223,7 @@ describe('ResultsPanel', () => {
       ]
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('✗ Unfulfilled (2)')).toBeInTheDocument();
     expect(screen.getByText('10× Iron')).toBeInTheDocument();
@@ -242,7 +249,7 @@ describe('ResultsPanel', () => {
       ]
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     expect(screen.getByText('✓ Fulfilled (1)')).toBeInTheDocument();
     expect(screen.getByText('5× Iron')).toBeInTheDocument();
@@ -271,7 +278,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     const trades = screen.getAllByText(/UPGRADE|DOWNGRADE/);
     expect(trades).toHaveLength(2);
@@ -292,7 +299,7 @@ describe('ResultsPanel', () => {
       unfulfilled: []
     };
 
-    render(<ResultsPanel allNeeds={allNeeds} result={result} />);
+    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     const ironElement = screen.getByText('Iron');
     expect(ironElement).toHaveClass('quality-1');
