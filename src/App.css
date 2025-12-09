@@ -455,7 +455,8 @@
 .trade-item .input-amt { color: #f87171; }
 .trade-item .output-amt { color: #34d399; }
 .trade-item .arrow { color: #64748b; }
-.trade-item .ratio { color: #475569; margin-left: auto; }
+.trade-item .ratio { color: #475569; margin-left: 4px; }
+.trade-item .filler { margin-left: auto; }
 
 /* Trade groups */
 .trade-group {

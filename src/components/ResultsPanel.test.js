@@ -54,10 +54,10 @@ describe('ResultsPanel', () => {
     expect(screen.getByText('Trade Sequence')).toBeInTheDocument();
     expect(screen.getByText('UPGRADE')).toBeInTheDocument();
     expect(screen.getByText('6×')).toBeInTheDocument();
-    expect(screen.getByText('Iron')).toBeInTheDocument();
+    expect(screen.getByText(/Iron \(/)).toBeInTheDocument();
     expect(screen.getByText('→')).toBeInTheDocument();
     expect(screen.getByText('1×')).toBeInTheDocument();
-    expect(screen.getByText('Carbon')).toBeInTheDocument();
+    expect(screen.getByText(/Carbon \(/)).toBeInTheDocument();
     expect(screen.getByText('[6:1]')).toBeInTheDocument();
   });
 
@@ -301,10 +301,10 @@ describe('ResultsPanel', () => {
 
     render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
-    const ironElement = screen.getByText('Iron');
+    const ironElement = screen.getByText(/Iron \(/);
     expect(ironElement).toHaveClass('quality-1');
 
-    const carbonElement = screen.getByText('Carbon');
+    const carbonElement = screen.getByText(/Carbon \(/);
     expect(carbonElement).toHaveClass('quality-2');
   });
 });
