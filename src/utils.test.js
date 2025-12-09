@@ -1198,6 +1198,43 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[1].remainder).toBeUndefined();
     });
 
+    test('does not eagerly convert when intermediate materials are sufficient', () => {
+      // Bug scenario: Have enough G3 materials for cross-type trade
+      // Also have G5 materials that should NOT be converted
+      // Imperial Shielding is Manufactured (Shielding) quality 5
+      // Compound Shielding is Manufactured (Shielding) quality 4
+      // Shielding Sensors is Manufactured (Shielding) quality 3
+      // Thermic Alloys is Manufactured (Thermic) quality 4
+
+      const inventory = [
+        { item: 'Imperial Shielding', quantity: 100 },     // G5 Shielding
+        { item: 'Compound Shielding', quantity: 6 }        // G4 Shielding (enough for cross-type!)
+      ];
+      const needs = [{ item: 'Thermic Alloys', quantity: 1 }]; // G4 Thermic
+
+      const result = optimizeTrading(inventory, needs);
+
+      // Should fulfill the need
+      expect(result.fulfilled).toHaveLength(1);
+      expect(result.fulfilled[0].item).toBe('Thermic Alloys');
+      expect(result.fulfilled[0].quantity).toBe(1);
+      expect(result.unfulfilled).toHaveLength(0);
+
+      // Should use ONLY the G4 materials (6:1 cross-type trade)
+      // Should NOT downgrade any G5 materials!
+      expect(result.trades).toHaveLength(1);
+      expect(result.trades[0].action).toBe('CROSS_TYPE');
+      expect(result.trades[0].input.item).toBe('Compound Shielding');
+      expect(result.trades[0].input.amount).toBe(6);
+      expect(result.trades[0].output.item).toBe('Thermic Alloys');
+      expect(result.trades[0].output.amount).toBe(1);
+
+      // Imperial Shielding should remain UNTOUCHED (all 100 units)
+      const remainingImperial = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
+      expect(remainingImperial).toBeDefined();
+      expect(remainingImperial.quantity).toBe(100); // CRITICAL: Should not have converted any!
+    });
+
     test('pools intermediate materials to minimize source consumption', () => {
       const inventory = [
         { item: 'Arsenic', quantity: 10 },
