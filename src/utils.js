@@ -1289,7 +1289,7 @@ export function calculateBlueprintCosts(selectedBlueprints) {
       if (!gradeMats) continue;
 
       // Get rolls for this specific grade
-      const rollsForGrade = rolls[g] || 1;
+      const rollsForGrade = rolls[g] ?? 1;
 
       for (const mat of gradeMats) {
         const key = mat.item;

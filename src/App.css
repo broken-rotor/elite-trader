@@ -617,6 +617,102 @@
   color: #64748b;
 }
 
+.btn-perform-roll {
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-perform-roll:hover:not(:disabled) {
+  background-color: #22c55e;
+}
+
+.btn-perform-roll:disabled {
+  background-color: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.btn-execute-trade {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: auto;
+}
+
+.btn-execute-trade:hover:not(:disabled) {
+  background-color: #3b82f6;
+}
+
+.btn-execute-trade:disabled {
+  background-color: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* History lists */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(30, 41, 59, 0.5);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  border: 1px solid #334155;
+}
+
+.history-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-text .arrow {
+  color: #64748b;
+}
+
+.btn-undo {
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-undo:hover {
+  background-color: #fbbf24;
+}
+
+.trade-history {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #1e293b;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
