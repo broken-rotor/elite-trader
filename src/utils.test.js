@@ -1449,7 +1449,7 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 1
       }
@@ -1471,7 +1471,7 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 3
       }
@@ -1490,7 +1490,7 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 0
       }
@@ -1506,13 +1506,13 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       },
       {
         id: 2,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Mass Manager',
         quantity: 1
       }
@@ -1532,13 +1532,13 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 0
       },
       {
         id: 2,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Mass Manager',
         quantity: 2
       }
@@ -1583,7 +1583,7 @@ describe('calculateExperimentalCosts', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Stripped Down',
         quantity: 1
       },

@@ -41,9 +41,9 @@ describe('ExperimentalsTab', () => {
     render(<ExperimentalsTab {...defaultProps} />);
 
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
-    expect(defaultProps.setSelectedModule).toHaveBeenCalledWith('FSD');
+    expect(defaultProps.setSelectedModule).toHaveBeenCalledWith('Frame Shift Drive');
   });
 
   test('experimental select is disabled when no module is selected', () => {
@@ -95,7 +95,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -111,7 +111,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 3
       }
@@ -128,7 +128,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -146,7 +146,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -162,7 +162,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -180,7 +180,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -202,7 +202,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -222,7 +222,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -244,7 +244,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 2
       }
@@ -268,7 +268,7 @@ describe('ExperimentalsTab', () => {
     const selectedExperimentals = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         experimental: 'Deep Charge',
         quantity: 0
       }

@@ -47,9 +47,9 @@ describe('BlueprintsTab', () => {
     render(<BlueprintsTab {...defaultProps} />);
 
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
-    expect(defaultProps.setSelectedModule).toHaveBeenCalledWith('FSD');
+    expect(defaultProps.setSelectedModule).toHaveBeenCalledWith('Frame Shift Drive');
   });
 
   test('blueprint select is disabled when no module is selected', () => {
@@ -131,7 +131,7 @@ describe('BlueprintsTab', () => {
     const blueprints = [
       {
         id: 1,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         blueprint: 'Increased Range',
         fromGrade: 1,
         toGrade: 5,
@@ -161,7 +161,7 @@ describe('BlueprintsTab', () => {
     const blueprints = [
       {
         id: 123,
-        module: 'FSD',
+        module: 'Frame Shift Drive',
         blueprint: 'Increased Range',
         fromGrade: 1,
         toGrade: 5,
