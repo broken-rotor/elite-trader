@@ -163,6 +163,24 @@
   cursor: not-allowed;
 }
 
+.btn-download {
+  background-color: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-download:hover {
+  background-color: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
 /* List items */
 .list-container {
   max-height: 300px;

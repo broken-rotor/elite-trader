@@ -594,6 +594,7 @@ function App() {
             filteredInventoryByCategory={filteredInventoryByCategory}
             updateInventoryQuantity={updateInventoryQuantity}
             removeFromInventory={removeFromInventory}
+            inventory={inventory}
           />
         )}
 
