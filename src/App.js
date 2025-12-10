@@ -3,16 +3,19 @@ import './App.css';
 import {
   MATERIALS_DB,
   getMaterial,
-  BLUEPRINTS_DB
+  BLUEPRINTS_DB,
+  EXPERIMENTALS_DB
 } from './database';
 import {
   calculateBlueprintCosts,
+  calculateExperimentalCosts,
   optimizeTrading,
   REROLL_STRATEGIES
 } from './utils';
 import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';
 import InventoryTab from './components/InventoryTab';
+import ExperimentalsTab from './components/ExperimentalsTab';
 import ResultsPanel from './components/ResultsPanel';
 
 function App() {
@@ -52,6 +55,7 @@ function App() {
   // History for undo functionality
   const [rollHistory, setRollHistory] = useState([]);
   const [tradeHistory, setTradeHistory] = useState([]);
+  const [experimentalRollHistory, setExperimentalRollHistory] = useState([]);
 
   const [searchOwned, setSearchOwned] = useState('');
   const [searchNeeded, setSearchNeeded] = useState('');
@@ -64,6 +68,24 @@ function App() {
   const [toGrade, setToGrade] = useState(5);
   const [strategy, setStrategy] = useState('typical');
 
+  // Experimentals tab state
+  const [selectedExpModule, setSelectedExpModule] = useState('');
+  const [selectedExperimental, setSelectedExperimental] = useState('');
+
+  // Load selected experimentals from localStorage or use empty array
+  const [selectedExperimentals, setSelectedExperimentals] = useState(() => {
+    const saved = localStorage.getItem('eliteTraderExperimentals');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to parse saved experimentals:', e);
+      }
+    }
+    return [];
+  });
+
   // Save inventory to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('eliteTraderInventory', JSON.stringify(inventory));
@@ -74,9 +96,19 @@ function App() {
     localStorage.setItem('eliteTraderBlueprints', JSON.stringify(selectedBlueprints));
   }, [selectedBlueprints]);
 
+  // Save selected experimentals to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('eliteTraderExperimentals', JSON.stringify(selectedExperimentals));
+  }, [selectedExperimentals]);
+
   const blueprintNeeds = useMemo(
     () => calculateBlueprintCosts(selectedBlueprints),
     [selectedBlueprints]
+  );
+
+  const experimentalNeeds = useMemo(
+    () => calculateExperimentalCosts(selectedExperimentals),
+    [selectedExperimentals]
   );
 
   const allNeeds = useMemo(() => {
@@ -87,8 +119,11 @@ function App() {
     for (const n of blueprintNeeds) {
       combined[n.item] = (combined[n.item] || 0) + n.quantity;
     }
+    for (const n of experimentalNeeds) {
+      combined[n.item] = (combined[n.item] || 0) + n.quantity;
+    }
     return Object.entries(combined).map(([item, quantity]) => ({ item, quantity }));
-  }, [manualNeeds, blueprintNeeds]);
+  }, [manualNeeds, blueprintNeeds, experimentalNeeds]);
 
   const result = useMemo(
     () => optimizeTrading(inventory, allNeeds),
@@ -167,6 +202,29 @@ function App() {
     ));
   };
 
+  const addExperimental = () => {
+    if (selectedExpModule && selectedExperimental) {
+      setSelectedExperimentals([
+        ...selectedExperimentals,
+        {
+          id: Date.now(),
+          module: selectedExpModule,
+          experimental: selectedExperimental,
+          quantity: 1
+        }
+      ]);
+    }
+  };
+
+  const removeExperimental = (id) =>
+    setSelectedExperimentals(selectedExperimentals.filter(e => e.id !== id));
+
+  const updateExperimentalQuantity = (id, quantity) => {
+    setSelectedExperimentals(selectedExperimentals.map(exp =>
+      exp.id === id ? { ...exp, quantity } : exp
+    ));
+  };
+
   const performBlueprintRoll = (blueprintId, grade) => {
     const blueprint = selectedBlueprints.find(bp => bp.id === blueprintId);
     if (!blueprint) return;
@@ -242,6 +300,79 @@ function App() {
 
     // Remove from history
     setRollHistory(rollHistory.filter(h => h.id !== historyEntry.id));
+  };
+
+  const performExperimentalRoll = (experimentalId) => {
+    const experimental = selectedExperimentals.find(exp => exp.id === experimentalId);
+    if (!experimental) return;
+
+    const currentQuantity = experimental.quantity ?? 1;
+    if (currentQuantity <= 0) return;
+
+    // Get materials needed for this experimental
+    const moduleData = EXPERIMENTALS_DB[experimental.module];
+    if (!moduleData) return;
+
+    const experimentalMats = moduleData.experimentals[experimental.experimental];
+    if (!experimentalMats) return;
+
+    // Check if we have enough materials
+    const newInventory = [...inventory];
+    const materialsNeeded = experimentalMats.map(m => ({ item: m.item, qty: m.qty }));
+
+    // Check availability
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      if (!invItem || invItem.quantity < needed.qty) {
+        alert(`Not enough ${needed.item}. Need ${needed.qty}, have ${invItem?.quantity || 0}`);
+        return;
+      }
+    }
+
+    // Record this action for undo
+    const historyEntry = {
+      id: Date.now(),
+      experimentalId,
+      moduleName: moduleData.name,
+      experimentalName: experimental.experimental,
+      materialsConsumed: materialsNeeded.map(m => ({ ...m })),
+      previousQuantity: currentQuantity
+    };
+
+    // Deduct materials
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      invItem.quantity -= needed.qty;
+    }
+
+    // Filter out zero-quantity items
+    setInventory(newInventory.filter(i => i.quantity > 0));
+
+    // Reduce quantity
+    updateExperimentalQuantity(experimentalId, Math.max(0, currentQuantity - 1));
+
+    // Add to history
+    setExperimentalRollHistory([historyEntry, ...experimentalRollHistory]);
+  };
+
+  const undoExperimentalRoll = (historyEntry) => {
+    // Restore materials
+    const newInventory = [...inventory];
+    for (const material of historyEntry.materialsConsumed) {
+      const invItem = newInventory.find(i => i.item === material.item);
+      if (invItem) {
+        invItem.quantity += material.qty;
+      } else {
+        newInventory.push({ item: material.item, quantity: material.qty });
+      }
+    }
+    setInventory(newInventory);
+
+    // Restore quantity
+    updateExperimentalQuantity(historyEntry.experimentalId, historyEntry.previousQuantity);
+
+    // Remove from history
+    setExperimentalRollHistory(experimentalRollHistory.filter(h => h.id !== historyEntry.id));
   };
 
   const removeFromInventory = (item) =>
@@ -374,6 +505,12 @@ function App() {
             🔧 Blueprints
           </button>
           <button
+            className={`tab-btn ${activeTab === 'experimentals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('experimentals')}
+          >
+            ⚡ Experimentals
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'manual' ? 'active' : ''}`}
             onClick={() => setActiveTab('manual')}
           >
@@ -409,6 +546,24 @@ function App() {
             inventory={inventory}
             rollHistory={rollHistory}
             undoRoll={undoRoll}
+          />
+        )}
+
+        {activeTab === 'experimentals' && (
+          <ExperimentalsTab
+            selectedModule={selectedExpModule}
+            setSelectedModule={setSelectedExpModule}
+            selectedExperimental={selectedExperimental}
+            setSelectedExperimental={setSelectedExperimental}
+            selectedExperimentals={selectedExperimentals}
+            addExperimental={addExperimental}
+            removeExperimental={removeExperimental}
+            updateExperimentalQuantity={updateExperimentalQuantity}
+            experimentalNeeds={experimentalNeeds}
+            performExperimentalRoll={performExperimentalRoll}
+            inventory={inventory}
+            experimentalRollHistory={experimentalRollHistory}
+            undoExperimentalRoll={undoExperimentalRoll}
           />
         )}
 
