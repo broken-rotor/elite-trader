@@ -3,6 +3,8 @@ import {
   getMaterialsAtTypeQuality,
   getMainCategory,
   MATERIALS_DB,
+  BLUEPRINTS_DB,
+  EXPERIMENTALS_DB,
 } from './database';
 
 describe('getMaterial', () => {
@@ -91,6 +93,137 @@ describe('Constants', () => {
       expect(material).toHaveProperty('type');
       expect(material).toHaveProperty('quality');
       expect(material).toHaveProperty('source');
+    });
+  });
+});
+
+describe('Blueprint Database Integrity', () => {
+  test('all blueprint materials exist in MATERIALS_DB', () => {
+    const missingMaterials = [];
+    const allMaterialNames = new Set(MATERIALS_DB.map(m => m.item));
+
+    Object.entries(BLUEPRINTS_DB).forEach(([moduleName, moduleData]) => {
+      Object.entries(moduleData.blueprints).forEach(([blueprintName, blueprintData]) => {
+        Object.entries(blueprintData.grades).forEach(([grade, materials]) => {
+          materials.forEach(material => {
+            if (!allMaterialNames.has(material.item)) {
+              missingMaterials.push({
+                module: moduleName,
+                blueprint: blueprintName,
+                grade: grade,
+                material: material.item
+              });
+            }
+          });
+        });
+      });
+    });
+
+    if (missingMaterials.length > 0) {
+      const errorMessage = 'The following materials are referenced in blueprints but not found in MATERIALS_DB:\n' +
+        missingMaterials.map(m =>
+          `  - "${m.material}" in ${m.module} > ${m.blueprint} > Grade ${m.grade}`
+        ).join('\n');
+      throw new Error(errorMessage);
+    }
+
+    expect(missingMaterials).toHaveLength(0);
+  });
+
+  test('BLUEPRINTS_DB contains blueprints', () => {
+    expect(Object.keys(BLUEPRINTS_DB).length).toBeGreaterThan(0);
+  });
+
+  test('all blueprints have valid structure', () => {
+    Object.entries(BLUEPRINTS_DB).forEach(([_moduleName, moduleData]) => {
+      expect(moduleData).toHaveProperty('name');
+      expect(moduleData).toHaveProperty('blueprints');
+      expect(typeof moduleData.blueprints).toBe('object');
+
+      Object.entries(moduleData.blueprints).forEach(([_blueprintName, blueprintData]) => {
+        expect(blueprintData).toHaveProperty('grades');
+        expect(typeof blueprintData.grades).toBe('object');
+
+        Object.entries(blueprintData.grades).forEach(([_grade, materials]) => {
+          expect(Array.isArray(materials)).toBe(true);
+          materials.forEach(material => {
+            expect(material).toHaveProperty('item');
+            expect(material).toHaveProperty('qty');
+            expect(typeof material.item).toBe('string');
+            expect(typeof material.qty).toBe('number');
+          });
+        });
+      });
+    });
+  });
+});
+
+describe('Experimental Effects Database Integrity', () => {
+  test('all experimental materials exist in MATERIALS_DB', () => {
+    const missingMaterials = [];
+    const allMaterialNames = new Set(MATERIALS_DB.map(m => m.item));
+
+    Object.entries(EXPERIMENTALS_DB).forEach(([moduleName, moduleData]) => {
+      if (!moduleData || !moduleData.experimentals) {
+        return;
+      }
+
+      Object.entries(moduleData.experimentals).forEach(([experimentalName, materials]) => {
+        if (!Array.isArray(materials)) {
+          return;
+        }
+
+        materials.forEach(material => {
+          if (!allMaterialNames.has(material.item)) {
+            missingMaterials.push({
+              module: moduleName,
+              experimental: experimentalName,
+              material: material.item
+            });
+          }
+        });
+      });
+    });
+
+    if (missingMaterials.length > 0) {
+      const errorMessage = 'The following materials are referenced in experimental effects but not found in MATERIALS_DB:\n' +
+        missingMaterials.map(m =>
+          `  - "${m.material}" in ${m.module} > ${m.experimental}`
+        ).join('\n');
+      throw new Error(errorMessage);
+    }
+
+    expect(missingMaterials).toHaveLength(0);
+  });
+
+  test('EXPERIMENTALS_DB contains experimentals', () => {
+    expect(Object.keys(EXPERIMENTALS_DB).length).toBeGreaterThan(0);
+  });
+
+  test('all experimentals have valid structure', () => {
+    Object.entries(EXPERIMENTALS_DB).forEach(([moduleName, moduleData]) => {
+      if (!moduleName || moduleName === '') {
+        return;
+      }
+
+      expect(moduleData).toHaveProperty('name');
+      expect(moduleData).toHaveProperty('experimentals');
+      expect(typeof moduleData.experimentals).toBe('object');
+
+      Object.entries(moduleData.experimentals).forEach(([experimentalName, materials]) => {
+        if (!experimentalName || experimentalName === '') {
+          return;
+        }
+
+        expect(Array.isArray(materials)).toBe(true);
+        materials.forEach(material => {
+          expect(material).toHaveProperty('item');
+          expect(material).toHaveProperty('qty');
+          expect(typeof material.item).toBe('string');
+          expect(typeof material.qty).toBe('number');
+          expect(material.item).not.toBe('');
+        });
+      });
     });
   });
 });
