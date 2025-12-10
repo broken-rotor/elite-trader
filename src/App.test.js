@@ -72,7 +72,7 @@ describe('App Component - Roll Functionality', () => {
 
     // Add a blueprint
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
     const blueprintSelect = screen.getByDisplayValue('Select Blueprint...');
     fireEvent.change(blueprintSelect, { target: { value: 'Increased Range' } });
@@ -95,7 +95,7 @@ describe('App Component - Roll Functionality', () => {
 
     // Add a blueprint
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
     const blueprintSelect = screen.getByDisplayValue('Select Blueprint...');
     fireEvent.change(blueprintSelect, { target: { value: 'Increased Range' } });
@@ -118,7 +118,7 @@ describe('App Component - Roll Functionality', () => {
 
     // Add a blueprint
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
     const blueprintSelect = screen.getByDisplayValue('Select Blueprint...');
     fireEvent.change(blueprintSelect, { target: { value: 'Increased Range' } });
@@ -138,7 +138,7 @@ describe('App Component - Roll Functionality', () => {
 
     // Add a blueprint
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
     const blueprintSelect = screen.getByDisplayValue('Select Blueprint...');
     fireEvent.change(blueprintSelect, { target: { value: 'Increased Range' } });
@@ -194,7 +194,7 @@ describe('App Component - Material Quality Color Coding', () => {
 
     // Add a blueprint
     const moduleSelect = screen.getByDisplayValue('Select Module...');
-    fireEvent.change(moduleSelect, { target: { value: 'FSD' } });
+    fireEvent.change(moduleSelect, { target: { value: 'Frame Shift Drive' } });
 
     const blueprintSelect = screen.getByDisplayValue('Select Blueprint...');
     fireEvent.change(blueprintSelect, { target: { value: 'Increased Range' } });

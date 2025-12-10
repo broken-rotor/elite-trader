@@ -202,7 +202,7 @@ export const BLUEPRINTS_DB = {
     }
   },
   // Core Internals Modules
-  'FSD': {
+  'Frame Shift Drive': {
     name: 'Frame Shift Drive',
     blueprints: {
       'Increased Range': {
@@ -421,11 +421,52 @@ export const BLUEPRINTS_DB = {
       }
     }
   },
-  // TODO: check rest
   // Optional Internal Modules
+  // TODO: Auto Field-Maintenance Unit
+  // TODO: Collector Limpet Controller
+  'Detailed Surface Scanner': {
+    name: 'Detailed Surface Scanner',
+    blueprints: {
+      'Expanded Probe Scanning Radius': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }],
+          2: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }, { item: 'Phase Alloys', qty: 1 }],
+          4: [{ item: 'Mechanical Equipment', qty: 1 }, { item: 'Niobium', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Mechanical Components', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      }
+    }
+  },
+  // TODO: Frame Shift Drive Interdictor
+  // TODO: Fuel Scoop
+  // TODO: Fuel Transfer Limpet Controller
+  // TODO: Hatch Breaker Limpet Controller
+  // TODO: Hull Reinforcement Package
+  // TODO: Prospector Limpet Controller
+  // TODO: Refinery
+  // TODO: Shield Cell Bank
   'Shield Generator': {
     name: 'Shield Generator',
     blueprints: {
+      'Enhanced Low Power': {
+        grades: {
+          1: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }],
+          2: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Germanium', qty: 1 }, { item: 'Precipitated Alloys', qty: 1 }],
+          4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Niobium', qty: 1 }, { item: 'Thermic Alloys', qty: 1 }],
+          5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Military Grade Alloys', qty: 1 }]
+        }
+      },
+      'Kinetic Resistant': {
+        grades: {
+          1: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }],
+          2: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }],
+          3: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Selenium', qty: 1 }],
+          4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Focus Crystals', qty: 1 }, { item: 'Mercury', qty: 1 }],
+          5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }, { item: 'Ruthenium', qty: 1 }]
+        }
+      },
       'Reinforced': {
         grades: {
           1: [{ item: 'Phosphorus', qty: 1 }],
@@ -443,22 +484,196 @@ export const BLUEPRINTS_DB = {
           4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Focus Crystals', qty: 1 }, { item: 'Mercury', qty: 1 }],
           5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }, { item: 'Ruthenium', qty: 1 }]
         }
-      },
-      'Enhanced Low Power': {
-        grades: {
-          1: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }],
-          2: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Germanium', qty: 1 }],
-          3: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Germanium', qty: 1 }, { item: 'Phosphorus', qty: 1 }],
-          4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Niobium', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }],
-          5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Biotech Conductors', qty: 1 }]
-        }
       }
     }
   },
   // Utility Mounts
+  // TODO: Caustic Sink Launcher
+  'Chaff Launcher': {
+    name: 'Chaff Launcher',
+    blueprints: {
+      'Ammo Capacity': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      }
+    }
+  },
+  // TODO: Electronic Countermeasure
+  'Frame Shift Wake Scanner': {
+    name: 'Frame Shift Wake Scanner',
+    blueprints: {
+      'Fast Scan': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Phosphorus', qty: 1 }, { item: 'Flawed Focus Crystals', qty: 1 }],
+          3: [{ item: 'Phosphorus', qty: 1 }, { item: 'Flawed Focus Crystals', qty: 1 }, { item: 'Open Symmetric Keys', qty: 1 }],
+          4: [{ item: 'Manganese', qty: 1 }, { item: 'Focus Crystals', qty: 1 }, { item: 'Atypical Encryption Archives', qty: 1 }],
+          5: [{ item: 'Arsenic', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }, { item: 'Adaptive Encryptors Capture', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Long Range': {
+        grades: {
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Iron', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }],
+          3: [{ item: 'Iron', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }],
+          4: [{ item: 'Germanium', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }],
+          5: [{ item: 'Niobium', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      },
+      'Wide Angle': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }],
+          2: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }, { item: 'Classified Scan Databanks', qty: 1 }],
+          4: [{ item: 'Mechanical Equipment', qty: 1 }, { item: 'Niobium', qty: 1 }, { item: 'Divergent Scan Data', qty: 1 }],
+          5: [{ item: 'Mechanical Components', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Classified Scan Fragment', qty: 1 }]
+        }
+      }
+    }
+  },
+  'Heat Sink Launcher': {
+    name: 'Heat Sink Launcher',
+    blueprints: {
+      'Ammo Capacity': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'Niobium', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      }
+    }
+  },
+  // TODO: Kill Warrant Scanner
+  // TODO: Manifest Scanner
+  'Point Defence': {
+    name: 'Point Defence',
+    blueprints: {
+      'Ammo Capacity': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'Niobium', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      }
+    }
+  },
   'Shield Booster': {
     name: 'Shield Booster',
     blueprints: {
+      'Blast Resistant': {
+        grades: {
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Focus Crystals', qty: 1 }],
+          4: [{ item: 'Germanium', qty: 1 }, { item: 'Untypical Shield Scans', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }],
+          5: [{ item: 'Niobium', qty: 1 }, { item: 'Aberrant Shield Pattern Analysis', qty: 1 }, { item: 'Exquisite Focus Crystals', qty: 1 }]
+        }
+      },
       'Heavy Duty': {
         grades: {
           1: [{ item: 'Grid Resistors', qty: 1 }],
@@ -466,6 +681,15 @@ export const BLUEPRINTS_DB = {
           3: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Niobium', qty: 1 }],
           4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Tin', qty: 1 }],
           5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }, { item: 'Antimony', qty: 1 }]
+        }
+      },
+      'Kinetic Resistance': {
+        grades: {
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Grid Resistors', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Focus Crystals', qty: 1 }],
+          4: [{ item: 'Galvanising Alloys', qty: 1 }, { item: 'Untypical Shield Scans', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }],
+          5: [{ item: 'Phase Alloys', qty: 1 }, { item: 'Aberrant Shield Pattern Analysis', qty: 1 }, { item: 'Exquisite Focus Crystals', qty: 1 }]
         }
       },
       'Resistance Augmented': {
@@ -479,15 +703,86 @@ export const BLUEPRINTS_DB = {
       },
       'Thermal Resistant': {
         grades: {
-          1: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }],
-          2: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Heat Resistant Ceramics', qty: 1 }],
-          3: [{ item: 'Distorted Shield Cycle Recordings', qty: 1 }, { item: 'Heat Resistant Ceramics', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }],
-          4: [{ item: 'Inconsistent Shield Soak Analysis', qty: 1 }, { item: 'Precipitated Alloys', qty: 1 }, { item: 'Heat Exchangers', qty: 1 }],
-          5: [{ item: 'Untypical Shield Scans', qty: 1 }, { item: 'Thermic Alloys', qty: 1 }, { item: 'Heat Vanes', qty: 1 }]
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }, { item: 'Focus Crystals', qty: 1 }],
+          4: [{ item: 'Heat Dispersion Plate', qty: 1 }, { item: 'Untypical Shield Scans', qty: 1 }, { item: 'Refined Focus Crystals', qty: 1 }],
+          5: [{ item: 'Heat Exchangers', qty: 1 }, { item: 'Aberrant Shield Pattern Analysis', qty: 1 }, { item: 'Exquisite Focus Crystals', qty: 1 }]
+        }
+      }
+    }
+  },
+  // Hardpoints
+  'Beam Laser': {
+    name: 'Beam Laser',
+    blueprints: {
+      'Efficient': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }],
+          3: [{ item: 'Exceptional Scrambled Emission Data', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Heat Exchangers', qty: 1 }],
+          4: [{ item: 'Irregular Emission Data', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Heat Vanes', qty: 1 }],
+          5: [{ item: 'Unexpected Emission Data', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Proto Heat Radiators', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Long Range': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }],
+          3: [{ item: 'Sulphur', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Focus Crystals', qty: 1 }],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Focus Crystals', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }],
+          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Thermic Alloys', qty: 1 }, { item: 'Biotech Conductors', qty: 1 }]
+        }
+      },
+      'Overcharged': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }],
+          5: [{ item: 'Zirconium', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }, { item: 'Modified Embedded Firmware', qty: 1 }]
+        }
+      },
+      'Short Range': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }],
+          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Configurable Components', qty: 1 }, { item: 'Biotech Conductors', qty: 1 }]
+        }
+      },
+      'Sturdy': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
         }
       }
     }
   }
+  // TODO: Burst Laser
+  // TODO: Cannon
+  // TODO: Fragment Cannon
+  // TODO: Mine Launcher
+  // TODO: Missile Rack
+  // TODO: Multi-Cannon
+  // TODO: Plasma Accelerator
+  // TODO: Pulse Laser
+  // TODO: Rail Gun
+  // TODO: Seeker Missile Rack
+  // TODO: Torpedo Pylon
 };
 
 // Experimental Effects Database
@@ -519,7 +814,7 @@ export const EXPERIMENTALS_DB = {
     }
   },
   // Core Internals Modules
-  'FSD': {
+  'Frame Shift Drive': {
     name: 'Frame Shift Drive',
     experimentals: {
       'Deep Charge': [
@@ -636,7 +931,7 @@ export const EXPERIMENTALS_DB = {
     }
   },
   // Optional Internals Modules
-  'Hull Reinforcement': {
+  'Hull Reinforcement Package': {
     name: 'Hull Reinforcement',
     experimentals: {
       'Angled Plating': [
@@ -828,7 +1123,17 @@ export const EXPERIMENTALS_DB = {
       ]
     }
   }
-  // TODO: Do the rest
+  // TODO: Burst Laser
+  // TODO: Cannon
+  // TODO: Fragment Cannon
+  // TODO: Mine Launcher
+  // TODO: Missile Rack
+  // TODO: Multi-Cannon
+  // TODO: Plasma Accelerator
+  // TODO: Pulse Laser
+  // TODO: Rail Gun
+  // TODO: Seeker Missile Rack
+  // TODO: Torpedo Pylon
 };
 
 // Helper functions

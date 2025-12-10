@@ -17,7 +17,7 @@ describe('Experimental Roll and Undo Logic', () => {
       selectedExperimentals: [
         {
           id: 1,
-          module: 'FSD',
+          module: 'Frame Shift Drive',
           experimental: 'Deep Charge',
           quantity: 3
         }
