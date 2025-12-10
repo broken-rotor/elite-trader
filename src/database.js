@@ -150,6 +150,58 @@ export const MATERIALS_DB = [
 
 // Engineering Blueprints Database
 export const BLUEPRINTS_DB = {
+  // Armour
+  'Armour': {
+    name: 'Armour',
+    blueprints: {
+      'Blast Resistant': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Zinc', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'Zirconium', qty: 1 }],
+          4: [{ item: 'Galvanising Alloys', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Mercury', qty: 1 }],
+          5: [{ item: 'Phase Alloys', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Ruthenium', qty: 1 }]
+        }
+      },
+      'Heavy Duty': {
+        grades: {
+          1: [{ item: 'Carbon', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      },
+      'Kinetic Resistant': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Vanadium', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Galvanising Alloys', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Phase Alloys', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Germanium', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Conductive Polymers', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Military Grade Alloys', qty: 1 }]
+        }
+      },
+      'Thermal Resistant': {
+        grades: {
+          1: [{ item: 'Heat Conduction Wiring', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }],
+          3: [{ item: 'Vanadium', qty: 1 }, { item: 'Salvaged Alloys', qty: 1 }, { item: 'Heat Exchangers', qty: 1 }],
+          4: [{ item: 'Tungsten', qty: 1 }, { item: 'Galvanising Alloys', qty: 1 }, { item: 'Heat Vanes', qty: 1 }],
+          5: [{ item: 'Molybdenum', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Heat Radiators', qty: 1 }]
+        }
+      }
+    }
+  },
+  // Core Internals Modules
   'FSD': {
     name: 'Frame Shift Drive',
     blueprints: {
@@ -182,34 +234,93 @@ export const BLUEPRINTS_DB = {
       }
     }
   },
-  'Thrusters': {
-    name: 'Thrusters',
+  'Life Support': {
+    name: 'Life Support',
     blueprints: {
-      'Dirty Drives': {
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1 }],
+          2: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Nickel', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Tungsten', qty: 1 }],
+          4: [{ item: 'Zinc', qty: 1 }, { item: 'Tungsten', qty: 1 }, { item: 'Molybdenum', qty: 1 }],
+          5: [{ item: 'High Density Composites', qty: 1 }, { item: 'Molybdenum', qty: 1 }, { item: 'Technetium', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      }
+    }
+  },
+  'Power Distributor': {
+    name: 'Power Distributor',
+    blueprints: {
+      'Charge Enhanced': {
         grades: {
           1: [{ item: 'Specialised Legacy Firmware', qty: 1 }],
-          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Mechanical Equipment', qty: 1 }],
-          3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Mechanical Components', qty: 1 }],
-          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Configurable Components', qty: 1 }],
-          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Pharmaceutical Isolators', qty: 1 }]
+          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Chemical Processors', qty: 1 }],
+          3: [{ item: 'Grid Resistors', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Chemical Distillery', qty: 1 }],
+          4: [{ item: 'Hybrid Capacitors', qty: 1 }, { item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Chemical Manipulators', qty: 1 }],
+          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Chemical Manipulators', qty: 1 }, { item: 'Exquisite Focus Crystals', qty: 1 }]
         }
       },
-      'Clean Drives': {
+      'Engine Focused': {
         grades: {
           1: [{ item: 'Sulphur', qty: 1 }],
-          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
-          3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }],
-          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }],
-          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
+          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Anomalous Bulk Scan Data', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }],
+          4: [{ item: 'Unidentified Scan Archives', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }],
+          5: [{ item: 'Classified Scan Databanks', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Military Supercapacitors', qty: 1 }]
         }
       },
-      'Drive Strengthening': {
+      'High Charge Capacity': {
         grades: {
-          1: [{ item: 'Carbon', qty: 1 }],
-          2: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Vanadium', qty: 1 }],
-          3: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
-          4: [{ item: 'Heat Dispersion Plate', qty: 1 }, { item: 'High Density Composites', qty: 1 }, { item: 'Cadmium', qty: 1 }],
-          5: [{ item: 'Heat Exchangers', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }, { item: 'Tin', qty: 1 }]
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Chromium', qty: 1 }],
+          3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }, { item: 'Military Supercapacitors', qty: 1 }]
+        }
+      },
+      'Shielded': {
+        grades: {
+          1: [{ item: 'Worn Shield Emitters', qty: 1 }],
+          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
+          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
+          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
+          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
+        }
+      },
+      'System Focused': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Anomalous Bulk Scan Data', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }],
+          4: [{ item: 'Unidentified Scan Archives', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }],
+          5: [{ item: 'Classified Scan Databanks', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Military Supercapacitors', qty: 1 }]
+        }
+      },
+      'Weapon Focused': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Anomalous Bulk Scan Data', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Selenium', qty: 1 }],
+          4: [{ item: 'Unidentified Scan Archives', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Cadmium', qty: 1 }],
+          5: [{ item: 'Classified Scan Databanks', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }, { item: 'Tellurium', qty: 1 }]
         }
       }
     }
@@ -217,15 +328,6 @@ export const BLUEPRINTS_DB = {
   'Power Plant': {
     name: 'Power Plant',
     blueprints: {
-      'Overcharged': {
-        grades: {
-          1: [{ item: 'Sulphur', qty: 1 }],
-          2: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
-          3: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Selenium', qty: 1 }],
-          4: [{ item: 'Heat Dispersion Plate', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Cadmium', qty: 1 }],
-          5: [{ item: 'Conductive Polymers', qty: 1 }, { item: 'Chemical Manipulators', qty: 1 }, { item: 'Tellurium', qty: 1 }]
-        }
-      },
       'Armoured': {
         grades: {
           1: [{ item: 'Worn Shield Emitters', qty: 1 }],
@@ -243,9 +345,84 @@ export const BLUEPRINTS_DB = {
           4: [{ item: 'Germanium', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }, { item: 'Heat Vanes', qty: 1 }],
           5: [{ item: 'Niobium', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }, { item: 'Proto Heat Radiators', qty: 1 }]
         }
+      },
+      'Overcharged': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Selenium', qty: 1 }],
+          4: [{ item: 'Heat Dispersion Plate', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Cadmium', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Chemical Manipulators', qty: 1 }, { item: 'Tellurium', qty: 1 }]
+        }
       }
     }
   },
+  'Sensors': {
+    name: 'Sensors',
+    blueprints: {
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1 }],
+          2: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }],
+          3: [{ item: 'Salvaged Alloys', qty: 1 }, { item: 'Manganese', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
+          4: [{ item: 'Conductive Components', qty: 1 }, { item: 'Phase Alloys', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Proto Light Alloys', qty: 1 }, { item: 'Proto Radiolic Alloys', qty: 1 }]
+        }
+      },
+      'Long Range': {
+        grades: {
+          1: [{ item: 'Iron', qty: 1 }],
+          2: [{ item: 'Iron', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }],
+          3: [{ item: 'Iron', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }],
+          4: [{ item: 'Germanium', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }],
+          5: [{ item: 'Niobium', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
+        }
+      },
+      'Wide Angle': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1 }],
+          2: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }],
+          3: [{ item: 'Mechanical Scrap', qty: 1 }, { item: 'Germanium', qty: 1 }, { item: 'Classified Scan Databanks', qty: 1 }],
+          4: [{ item: 'Mechanical Equipment', qty: 1 }, { item: 'Niobium', qty: 1 }, { item: 'Divergent Scan Data', qty: 1 }],
+          5: [{ item: 'Mechanical Components', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Classified Scan Fragment', qty: 1 }]
+        }
+      }
+    }
+  },
+  'Thrusters': {
+    name: 'Thrusters',
+    blueprints: {
+      'Clean': {
+        grades: {
+          1: [{ item: 'Sulphur', qty: 1 }],
+          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
+          3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }],
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
+        }
+      },
+      'Dirty': {
+        grades: {
+          1: [{ item: 'Specialised Legacy Firmware', qty: 1 }],
+          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Mechanical Equipment', qty: 1 }],
+          3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Mechanical Components', qty: 1 }],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Configurable Components', qty: 1 }],
+          5: [{ item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Pharmaceutical Isolators', qty: 1 }]
+        }
+      },
+      'Reinforced': {
+        grades: {
+          1: [{ item: 'Carbon', qty: 1 }],
+          2: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Vanadium', qty: 1 }],
+          3: [{ item: 'Heat Conduction Wiring', qty: 1 }, { item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }],
+          4: [{ item: 'Heat Dispersion Plate', qty: 1 }, { item: 'High Density Composites', qty: 1 }, { item: 'Compound Shielding', qty: 1 }],
+          5: [{ item: 'Heat Exchangers', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }, { item: 'Imperial Shielding', qty: 1 }]
+        }
+      }
+    }
+  },
+  // TODO: check rest
+  // Optional Internal Modules
   'Shield Generator': {
     name: 'Shield Generator',
     blueprints: {
@@ -278,6 +455,7 @@ export const BLUEPRINTS_DB = {
       }
     }
   },
+  // Utility Mounts
   'Shield Booster': {
     name: 'Shield Booster',
     blueprints: {
@@ -309,75 +487,37 @@ export const BLUEPRINTS_DB = {
         }
       }
     }
-  },
-  'Armour': {
-    name: 'Armour',
-    blueprints: {
-      'Heavy Duty': {
-        grades: {
-          1: [{ item: 'Carbon', qty: 1 }],
-          2: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }],
-          3: [{ item: 'Carbon', qty: 1 }, { item: 'Shield Emitters', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
-          4: [{ item: 'Vanadium', qty: 1 }, { item: 'Shielding Sensors', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
-          5: [{ item: 'Tungsten', qty: 1 }, { item: 'Compound Shielding', qty: 1 }, { item: 'Core Dynamics Composites', qty: 1 }]
-        }
-      },
-      'Lightweight': {
-        grades: {
-          1: [{ item: 'Iron', qty: 1 }],
-          2: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
-          3: [{ item: 'Iron', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'High Density Composites', qty: 1 }],
-          4: [{ item: 'Germanium', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Proprietary Composites', qty: 1 }],
-          5: [{ item: 'Conductive Polymers', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Military Grade Alloys', qty: 1 }]
-        }
-      },
-      'Thermal Resistant': {
-        grades: {
-          1: [{ item: 'Heat Conduction Wiring', qty: 1 }],
-          2: [{ item: 'Nickel', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }],
-          3: [{ item: 'Vanadium', qty: 1 }, { item: 'Heat Dispersion Plate', qty: 1 }, { item: 'Heat Exchangers', qty: 1 }],
-          4: [{ item: 'Tungsten', qty: 1 }, { item: 'Heat Exchangers', qty: 1 }, { item: 'Heat Vanes', qty: 1 }],
-          5: [{ item: 'Molybdenum', qty: 1 }, { item: 'Heat Vanes', qty: 1 }, { item: 'Proto Heat Radiators', qty: 1 }]
-        }
-      }
-    }
-  },
-  'Power Distributor': {
-    name: 'Power Distributor',
-    blueprints: {
-      'Charge Enhanced': {
-        grades: {
-          1: [{ item: 'Specialised Legacy Firmware', qty: 1 }],
-          2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
-          3: [{ item: 'Grid Resistors', qty: 1 }, { item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }],
-          4: [{ item: 'Hybrid Capacitors', qty: 1 }, { item: 'Cracked Industrial Firmware', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }],
-          5: [{ item: 'Modified Embedded Firmware', qty: 1 }, { item: 'Conductive Polymers', qty: 1 }, { item: 'Exquisite Focus Crystals', qty: 1 }]
-        }
-      },
-      'Engine Focused': {
-        grades: {
-          1: [{ item: 'Sulphur', qty: 1 }],
-          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
-          3: [{ item: 'Exceptional Scrambled Emission Data', qty: 1 }, { item: 'Chromium', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }],
-          4: [{ item: 'Irregular Emission Data', qty: 1 }, { item: 'Selenium', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }],
-          5: [{ item: 'Unexpected Emission Data', qty: 1 }, { item: 'Cadmium', qty: 1 }, { item: 'Military Supercapacitors', qty: 1 }]
-        }
-      },
-      'Weapon Focused': {
-        grades: {
-          1: [{ item: 'Sulphur', qty: 1 }],
-          2: [{ item: 'Sulphur', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }],
-          3: [{ item: 'Exceptional Scrambled Emission Data', qty: 1 }, { item: 'Hybrid Capacitors', qty: 1 }, { item: 'Selenium', qty: 1 }],
-          4: [{ item: 'Irregular Emission Data', qty: 1 }, { item: 'Electrochemical Arrays', qty: 1 }, { item: 'Cadmium', qty: 1 }],
-          5: [{ item: 'Unexpected Emission Data', qty: 1 }, { item: 'Polymer Capacitors', qty: 1 }, { item: 'Tellurium', qty: 1 }]
-        }
-      }
-    }
   }
 };
 
 // Experimental Effects Database
 export const EXPERIMENTALS_DB = {
+  // Armour
+  'Armour': {
+    name: 'Armour',
+    experimentals: {
+      'Angled Plating': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'High Density Composites', qty: 3 },
+        { item: 'Zirconium', qty: 3 }
+      ],
+      'Deep Plating': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Mechanical Equipment', qty: 3 },
+        { item: 'Molybdenum', qty: 2 }
+      ],
+      'Layered Plating': [
+        { item: 'Heat Conduction Wiring', qty: 5 },
+        { item: 'High Density Composites', qty: 3 },
+        { item: 'Niobium', qty: 1 }
+      ],
+      'Reflective Plating': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Heat Dispersion Plate', qty: 3 },
+        { item: 'Thermic Alloys', qty: 2 }
+      ]
+    }
+  },
   // Core Internals Modules
   'FSD': {
     name: 'Frame Shift Drive',
@@ -517,13 +657,42 @@ export const EXPERIMENTALS_DB = {
       ],
       'Reflective Plating': [
         { item: 'Heat Conduction Wiring', qty: 5 },
-        { item: 'Heat Dispersion plate', qty: 3 },
+        { item: 'Heat Dispersion Plate', qty: 3 },
         { item: 'Proto Light Alloys', qty: 1 },
         { item: 'Zinc', qty: 4 }
       ]
     }
   },
-  // Shield Cell Bank
+  'Shield Cell Bank': {
+    name: 'Shield Cell Bank',
+    experimentals: {
+      'Boss Cells': [
+        { item: 'Chemical Storage Units', qty: 5 },
+        { item: 'Chromium', qty: 3 },
+        { item: 'Polymer Capacitors', qty: 1 }
+      ],
+      'Double Braced': [
+        { item: 'Chemical Storage Units', qty: 5 },
+        { item: 'Chromium', qty: 3 },
+        { item: 'Yttrium', qty: 1 }
+      ],
+      'Flow Control': [
+        { item: 'Chemical Storage Units', qty: 5 },
+        { item: 'Chromium', qty: 3 },
+        { item: 'Conductive Polymers', qty: 1 }
+      ],
+      'Recycling Cell': [
+        { item: 'Chemical Storage Units', qty: 5 },
+        { item: 'Chromium', qty: 3 },
+        { item: 'Configurable Components', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Chemical Storage Units', qty: 5 },
+        { item: 'Chromium', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ]
+    }
+  },
   'Shield Generator': {
     name: 'Shield Generator',
     experimentals: {
@@ -573,38 +742,93 @@ export const EXPERIMENTALS_DB = {
   'Shield Booster': {
     name: 'Shield Booster',
     experimentals: {
+      'Blast Block': [
+        { item: 'Inconsistent Shield Soak Analysis', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Heat Dispersion Plate', qty: 3 },
+        { item: 'Selenium', qty: 2 }
+      ],
       'Double Braced': [
+        { item: 'Distorted Shield Cycle Recordings', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Shield Emitters', qty: 3 }
+      ],
+      'Flow Control': [
+        { item: 'Inconsistent Shield Soak Analysis', qty: 5 },
+        { item: 'Security Firmware Patch', qty: 3 },
+        { item: 'Focus Crystals', qty: 3 },
+        { item: 'Niobium', qty: 3 }
+      ],
+      'Force Block': [
+        { item: 'Unidentified Scan Archives', qty: 5 },
+        { item: 'Shielding Sensors', qty: 3 },
+        { item: 'Aberrant Shield Pattern Analysis', qty: 2 }
+      ],
+      'Super Capacitors': [
         { item: 'Compact Composites', qty: 5 },
-        { item: 'Mechanical Components', qty: 3 },
-        { item: 'Vanadium', qty: 5 }
+        { item: 'Untypical Shield Scans', qty: 3 },
+        { item: 'Cadmium', qty: 2 }
+      ],
+      'Thermo Block': [
+        { item: 'Anomalous Bulk Scan Data', qty: 5 },
+        { item: 'Conductive Ceramics', qty: 3 },
+        { item: 'Heat Vanes', qty: 3 }
+      ]
+    }
+  },
+  // Hardpoints
+  'Beam Laser': {
+    name: 'Beam Laser',
+    experimentals: {
+      'Concordant Sequence': [
+        { item: 'Focus Crystals', qty: 5 },
+        { item: 'Modified Embedded Firmware', qty: 3 },
+        { item: 'Zirconium', qty: 1 }
+      ],
+      'Double Braced': [
+        { item: 'Mechanical Scrap', qty: 5 },
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Vanadium', qty: 3 }
       ],
       'Flow Control': [
         { item: 'Mechanical Scrap', qty: 5 },
         { item: 'Hybrid Capacitors', qty: 3 },
         { item: 'Modified Embedded Firmware', qty: 1 }
       ],
-      'Force Block': [
-        { item: 'Arsenic', qty: 5 },
+      'Oversized': [
+        { item: 'Mechanical Scrap', qty: 5 },
+        { item: 'Mechanical Components', qty: 3 },
+        { item: 'Ruthenium', qty: 1 }
+      ],
+      'Regeneration Sequence': [
         { item: 'Refined Focus Crystals', qty: 3 },
-        { item: 'Improvised Components', qty: 1 }
+        { item: 'Shielding Sensors', qty: 4 },
+        { item: 'Peculiar Shield Frequency Data', qty: 1 }
       ],
-      'Super Capacitors': [
-        { item: 'Chromium', qty: 5 },
-        { item: 'Polymer Capacitors', qty: 3 },
-        { item: 'Improvised Components', qty: 1 }
+      'Stripped Down': [
+        { item: 'Salvaged Alloys', qty: 5 },
+        { item: 'Carbon', qty: 5 },
+        { item: 'Tin', qty: 1 }
       ],
-      'Thermo Block': [
-        { item: 'Heat Conduction Wiring', qty: 5 },
-        { item: 'Focus Crystals', qty: 3 },
-        { item: 'Proto Heat Radiators', qty: 1 }
+      'Thermal Conduit': [
+        { item: 'Heat Dispersion Plate', qty: 5 },
+        { item: 'Sulphur', qty: 5 },
+        { item: 'Tempered Alloys', qty: 5 }
       ],
-      'Blast Block': [
-        { item: 'Selenium', qty: 5 },
-        { item: 'Compound Shielding', qty: 3 },
-        { item: 'Core Dynamics Composites', qty: 1 }
+      'Thermal Shock': [
+        { item: 'Flawed Focus Crystals', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Conductive Components', qty: 3 },
+        { item: 'Tungsten', qty: 3 }
+      ],
+      'Thermal Vent': [
+        { item: 'Flawed Focus Crystals', qty: 5 },
+        { item: 'Conductive Polymers', qty: 3 },
+        { item: 'Precipitated Alloys', qty: 3 }
       ]
     }
   }
+  // TODO: Do the rest
 };
 
 // Helper functions
