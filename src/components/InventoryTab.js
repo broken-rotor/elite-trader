@@ -16,11 +16,30 @@ function InventoryTab({
   addToInventory,
   filteredInventoryByCategory,
   updateInventoryQuantity,
-  removeFromInventory
+  removeFromInventory,
+  inventory
 }) {
+  const downloadInventory = () => {
+    const dataStr = JSON.stringify(inventory, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'elite-trader-inventory.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="panel">
-      <h2 className="blue">Your Inventory</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="blue">Your Inventory</h2>
+        <button className="btn-download" onClick={downloadInventory}>
+          ⬇️ Download
+        </button>
+      </div>
 
       {/* Inventory Sub-tabs */}
       <div className="tabs" style={{marginBottom: '20px'}}>
