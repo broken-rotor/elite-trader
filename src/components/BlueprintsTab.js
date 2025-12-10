@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BLUEPRINTS_DB, getMaterial } from '../database';
 import { REROLL_STRATEGIES } from '../utils';
 import Tooltip from './Tooltip';
@@ -28,6 +28,39 @@ function BlueprintsTab({
   undoRoll
 }) {
   const availableBlueprints = selectedModule ? Object.keys(BLUEPRINTS_DB[selectedModule]?.blueprints || {}) : [];
+
+  // Get available grades for the currently selected blueprint
+  const getAvailableGrades = () => {
+    if (!selectedModule || !selectedBp) return [1, 2, 3, 4, 5];
+    const blueprintData = BLUEPRINTS_DB[selectedModule]?.blueprints[selectedBp];
+    if (!blueprintData) return [1, 2, 3, 4, 5];
+    return Object.keys(blueprintData.grades).map(Number).sort((a, b) => a - b);
+  };
+
+  const availableGrades = getAvailableGrades();
+
+  // Auto-adjust grade range when blueprint changes
+  useEffect(() => {
+    if (selectedBp && availableGrades.length > 0) {
+      const minGrade = availableGrades[0];
+      const maxGrade = availableGrades[availableGrades.length - 1];
+
+      // Adjust fromGrade if it's out of range
+      if (fromGrade < minGrade || fromGrade > maxGrade) {
+        setFromGrade(minGrade);
+      }
+
+      // Adjust toGrade if it's out of range
+      if (toGrade < minGrade || toGrade > maxGrade) {
+        setToGrade(maxGrade);
+      }
+
+      // Ensure fromGrade <= toGrade
+      if (fromGrade > toGrade) {
+        setToGrade(fromGrade);
+      }
+    }
+  }, [selectedBp, availableGrades.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="panel">
@@ -61,12 +94,28 @@ function BlueprintsTab({
         </select>
 
         <div className="grade-select">
-          <select value={fromGrade} onChange={(e) => setFromGrade(parseInt(e.target.value))}>
-            {[1,2,3,4,5].map(g => <option key={g} value={g}>G{g}</option>)}
+          <select
+            value={fromGrade}
+            onChange={(e) => {
+              const newFrom = parseInt(e.target.value);
+              setFromGrade(newFrom);
+              if (newFrom > toGrade) setToGrade(newFrom);
+            }}
+            disabled={!selectedBp}
+          >
+            {availableGrades.map(g => <option key={g} value={g}>G{g}</option>)}
           </select>
           <span>→</span>
-          <select value={toGrade} onChange={(e) => setToGrade(parseInt(e.target.value))}>
-            {[1,2,3,4,5].map(g => <option key={g} value={g}>G{g}</option>)}
+          <select
+            value={toGrade}
+            onChange={(e) => {
+              const newTo = parseInt(e.target.value);
+              setToGrade(newTo);
+              if (newTo < fromGrade) setFromGrade(newTo);
+            }}
+            disabled={!selectedBp}
+          >
+            {availableGrades.map(g => <option key={g} value={g}>G{g}</option>)}
           </select>
         </div>
 
@@ -100,12 +149,14 @@ function BlueprintsTab({
               </div>
               <div className="rolls-editor">
                 {[1, 2, 3, 4, 5].map(grade => {
-                  if (grade < bp.fromGrade || grade > bp.toGrade) return null;
-
-                  const currentRolls = bp.rolls?.[grade] ?? 1;
                   const moduleData = BLUEPRINTS_DB[bp.module];
                   const blueprintData = moduleData?.blueprints[bp.blueprint];
-                  const gradeMats = blueprintData?.grades[grade] || [];
+                  const gradeMats = blueprintData?.grades[grade];
+
+                  // Skip if grade doesn't exist for this blueprint or is outside selected range
+                  if (!gradeMats || grade < bp.fromGrade || grade > bp.toGrade) return null;
+
+                  const currentRolls = bp.rolls?.[grade] ?? 1;
 
                   // Check if we have enough materials for this roll and collect missing materials
                   const missingMaterials = [];
