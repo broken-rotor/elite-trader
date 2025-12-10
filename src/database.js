@@ -200,7 +200,7 @@ export const BLUEPRINTS_DB = {
           2: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }],
           3: [{ item: 'Specialised Legacy Firmware', qty: 1 }, { item: 'Conductive Components', qty: 1 }, { item: 'Unexpected Emission Data', qty: 1 }],
           4: [{ item: 'Modified Consumer Firmware', qty: 1 }, { item: 'Conductive Ceramics', qty: 1 }, { item: 'Decoded Emission Data', qty: 1 }],
-          5: [{ item: 'Conductive Polymers', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
+          5: [{ item: 'Conductive Ceramics', qty: 1 }, { item: 'Tin', qty: 1 }, { item: 'Abnormal Compact Emissions Data', qty: 1 }]
         }
       },
       'Drive Strengthening': {
@@ -395,4 +395,239 @@ export function getMainCategory(type) {
 
 export function getBlueprint(moduleName) {
   return BLUEPRINTS_DB[moduleName];
+}
+
+// Experimental Effects Database
+export const EXPERIMENTALS_DB = {
+  // Core Internals Modules
+  'FSD': {
+    name: 'Frame Shift Drive',
+    experimentals: {
+      'Deep Charge': [
+        { item: 'Atypical Disrupted Wake Echoes', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Eccentric Hyperspace Trajectories', qty: 1 }
+      ],
+      'Double Braced': [
+        { item: 'Atypical Disrupted Wake Echoes', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Configurable Components', qty: 1 }
+      ],
+      'Mass Manager': [
+        { item: 'Atypical Disrupted Wake Echoes', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Eccentric Hyperspace Trajectories', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Atypical Disrupted Wake Echoes', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ],
+      'Thermal Spread': [
+        { item: 'Atypical Disrupted Wake Echoes', qty: 5 },
+        { item: 'Galvanising Alloys', qty: 3 },
+        { item: 'Heat Vanes', qty: 1 },
+        { item: 'Grid Resistors', qty: 3 }
+      ]
+    }
+  },
+  'Power Distributor': {
+    name: 'Power Distributor',
+    experimentals: {
+      'Cluster Capacitors': [
+        { item: 'Phosphorus', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Cadmium', qty: 1 }
+      ],
+      'Double Braced': [
+        { item: 'Phosphorus', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Proprietary Composites', qty: 5 }
+      ],
+      'Flow Control': [
+        { item: 'Phosphorus', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Conductive Polymers', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Phosphorus', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ],
+      'Super Conduits': [
+        { item: 'Phosphorus', qty: 5 },
+        { item: 'Heat Resistant Ceramics', qty: 3 },
+        { item: 'Security Firmware Patch', qty: 1 }
+      ]
+    }
+  },
+  'Power Plant': {
+    name: 'Power Plant',
+    experimentals: {
+      'Double Braced': [
+        { item: 'Grid Resistors', qty: 5 },
+        { item: 'Vanadium', qty: 3 },
+        { item: 'Proprietary Composites', qty: 1 }
+      ],
+      'Monstered': [
+        { item: 'Grid Resistors', qty: 5 },
+        { item: 'Vanadium', qty: 3 },
+        { item: 'Polymer Capacitors', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Grid Resistors', qty: 5 },
+        { item: 'Vanadium', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ],
+      'Thermal Spread': [
+        { item: 'Grid Resistors', qty: 5 },
+        { item: 'Vanadium', qty: 3 },
+        { item: 'Heat Vanes', qty: 1 }
+      ]
+    }
+  },
+  'Thrusters': {
+    name: 'Thrusters',
+    experimentals: {
+      'Double Braced': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Mechanical Components', qty: 3 },
+        { item: 'Proprietary Composites', qty: 5 }
+      ],
+      'Drag Drives': [
+        { item: 'Iron', qty: 5 },
+        { item: 'Hybrid Capacitors', qty: 3 },
+        { item: 'Security Firmware Patch', qty: 1 }
+      ],
+      'Drive Distributors': [
+        { item: 'Iron', qty: 5 },
+        { item: 'Hybrid Capacitors', qty: 3 },
+        { item: 'Security Firmware Patch', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Iron', qty: 5 },
+        { item: 'Hybrid Capacitors', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ],
+      'Thermal Spread': [
+        { item: 'Iron', qty: 5 },
+        { item: 'Hybrid Capacitors', qty: 3 },
+        { item: 'Heat Vanes', qty: 1 }
+      ]
+    }
+  },
+  // Optional Internals Modules
+  'Hull Reinforcement': {
+    name: 'Hull Reinforcement',
+    experimentals: {
+      'Angled Plating': [
+        { item: 'Tempered Alloys', qty: 5 },
+        { item: 'Zirconium', qty: 3 },
+        { item: 'Carbon', qty: 5 },
+        { item: 'High Density Composites', qty: 3 }
+      ],
+      'Deep Plating': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Molybdenum', qty: 3 },
+        { item: 'Ruthenium', qty: 2 }
+      ],
+      'Layered Plating': [
+        { item: 'Heat Conduction Wiring', qty: 5 },
+        { item: 'Shielding Sensors', qty: 3 },
+        { item: 'Tungsten', qty: 3 }
+      ],
+      'Reflective Plating': [
+        { item: 'Heat Conduction Wiring', qty: 5 },
+        { item: 'Heat Dispersion plate', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 },
+        { item: 'Zinc', qty: 4 }
+      ]
+    }
+  },
+  // Shield Cell Bank
+  'Shield Generator': {
+    name: 'Shield Generator',
+    experimentals: {
+      'Double Braced': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Configurable Components', qty: 1 }
+      ],
+      'Fast Charge': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Compound Shielding', qty: 1 }
+      ],
+      'Force Block': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Decoded Emission Data', qty: 1 }
+      ],
+      'Hi-Cap': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Conductive Polymers', qty: 1 }
+      ],
+      'Lo-Draw': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Conductive Polymers', qty: 1 }
+      ],
+      'Multi-Weave': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Aberrant Shield Pattern Analysis', qty: 1 }
+      ],
+      'Stripped Down': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Proto Light Alloys', qty: 1 }
+      ],
+      'Thermo Block': [
+        { item: 'Worn Shield Emitters', qty: 5 },
+        { item: 'Flawed Focus Crystals', qty: 3 },
+        { item: 'Heat Vanes', qty: 1 }
+      ]
+    }
+  },
+  // Utility Mounts
+  'Shield Booster': {
+    name: 'Shield Booster',
+    experimentals: {
+      'Double Braced': [
+        { item: 'Compact Composites', qty: 5 },
+        { item: 'Mechanical Components', qty: 3 },
+        { item: 'Vanadium', qty: 5 }
+      ],
+      'Flow Control': [
+        { item: 'Mechanical Scrap', qty: 5 },
+        { item: 'Hybrid Capacitors', qty: 3 },
+        { item: 'Modified Embedded Firmware', qty: 1 }
+      ],
+      'Force Block': [
+        { item: 'Arsenic', qty: 5 },
+        { item: 'Refined Focus Crystals', qty: 3 },
+        { item: 'Improvised Components', qty: 1 }
+      ],
+      'Super Capacitors': [
+        { item: 'Chromium', qty: 5 },
+        { item: 'Polymer Capacitors', qty: 3 },
+        { item: 'Improvised Components', qty: 1 }
+      ],
+      'Thermo Block': [
+        { item: 'Heat Conduction Wiring', qty: 5 },
+        { item: 'Focus Crystals', qty: 3 },
+        { item: 'Proto Heat Radiators', qty: 1 }
+      ],
+      'Blast Block': [
+        { item: 'Selenium', qty: 5 },
+        { item: 'Compound Shielding', qty: 3 },
+        { item: 'Core Dynamics Composites', qty: 1 }
+      ]
+    }
+  }
+};
+
+export function getExperimentals(moduleName) {
+  return EXPERIMENTALS_DB[moduleName];
 }

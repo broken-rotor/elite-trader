@@ -7,12 +7,14 @@ import {
 } from './database';
 import {
   calculateBlueprintCosts,
+  calculateExperimentalCosts,
   optimizeTrading,
   REROLL_STRATEGIES
 } from './utils';
 import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';
 import InventoryTab from './components/InventoryTab';
+import ExperimentalsTab from './components/ExperimentalsTab';
 import ResultsPanel from './components/ResultsPanel';
 
 function App() {
@@ -64,6 +66,24 @@ function App() {
   const [toGrade, setToGrade] = useState(5);
   const [strategy, setStrategy] = useState('typical');
 
+  // Experimentals tab state
+  const [selectedExpModule, setSelectedExpModule] = useState('');
+  const [selectedExperimental, setSelectedExperimental] = useState('');
+
+  // Load selected experimentals from localStorage or use empty array
+  const [selectedExperimentals, setSelectedExperimentals] = useState(() => {
+    const saved = localStorage.getItem('eliteTraderExperimentals');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to parse saved experimentals:', e);
+      }
+    }
+    return [];
+  });
+
   // Save inventory to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('eliteTraderInventory', JSON.stringify(inventory));
@@ -74,9 +94,19 @@ function App() {
     localStorage.setItem('eliteTraderBlueprints', JSON.stringify(selectedBlueprints));
   }, [selectedBlueprints]);
 
+  // Save selected experimentals to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('eliteTraderExperimentals', JSON.stringify(selectedExperimentals));
+  }, [selectedExperimentals]);
+
   const blueprintNeeds = useMemo(
     () => calculateBlueprintCosts(selectedBlueprints),
     [selectedBlueprints]
+  );
+
+  const experimentalNeeds = useMemo(
+    () => calculateExperimentalCosts(selectedExperimentals),
+    [selectedExperimentals]
   );
 
   const allNeeds = useMemo(() => {
@@ -87,8 +117,11 @@ function App() {
     for (const n of blueprintNeeds) {
       combined[n.item] = (combined[n.item] || 0) + n.quantity;
     }
+    for (const n of experimentalNeeds) {
+      combined[n.item] = (combined[n.item] || 0) + n.quantity;
+    }
     return Object.entries(combined).map(([item, quantity]) => ({ item, quantity }));
-  }, [manualNeeds, blueprintNeeds]);
+  }, [manualNeeds, blueprintNeeds, experimentalNeeds]);
 
   const result = useMemo(
     () => optimizeTrading(inventory, allNeeds),
@@ -164,6 +197,29 @@ function App() {
   const updateBlueprintRolls = (id, grade, rolls) => {
     setSelectedBlueprints(selectedBlueprints.map(bp =>
       bp.id === id ? { ...bp, rolls: { ...bp.rolls, [grade]: rolls } } : bp
+    ));
+  };
+
+  const addExperimental = () => {
+    if (selectedExpModule && selectedExperimental) {
+      setSelectedExperimentals([
+        ...selectedExperimentals,
+        {
+          id: Date.now(),
+          module: selectedExpModule,
+          experimental: selectedExperimental,
+          quantity: 1
+        }
+      ]);
+    }
+  };
+
+  const removeExperimental = (id) =>
+    setSelectedExperimentals(selectedExperimentals.filter(e => e.id !== id));
+
+  const updateExperimentalQuantity = (id, quantity) => {
+    setSelectedExperimentals(selectedExperimentals.map(exp =>
+      exp.id === id ? { ...exp, quantity } : exp
     ));
   };
 
@@ -374,6 +430,12 @@ function App() {
             🔧 Blueprints
           </button>
           <button
+            className={`tab-btn ${activeTab === 'experimentals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('experimentals')}
+          >
+            ⚡ Experimentals
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'manual' ? 'active' : ''}`}
             onClick={() => setActiveTab('manual')}
           >
@@ -409,6 +471,20 @@ function App() {
             inventory={inventory}
             rollHistory={rollHistory}
             undoRoll={undoRoll}
+          />
+        )}
+
+        {activeTab === 'experimentals' && (
+          <ExperimentalsTab
+            selectedModule={selectedExpModule}
+            setSelectedModule={setSelectedExpModule}
+            selectedExperimental={selectedExperimental}
+            setSelectedExperimental={setSelectedExperimental}
+            selectedExperimentals={selectedExperimentals}
+            addExperimental={addExperimental}
+            removeExperimental={removeExperimental}
+            updateExperimentalQuantity={updateExperimentalQuantity}
+            experimentalNeeds={experimentalNeeds}
           />
         )}
 

@@ -2,7 +2,8 @@ import {
   getMaterial,
   getMaterialsAtTypeQuality,
   getMainCategory,
-  getBlueprint
+  getBlueprint,
+  getExperimentals
 } from './database';
 
 // Reroll strategies - number of rolls per grade
@@ -908,6 +909,29 @@ export function calculateBlueprintCosts(selectedBlueprints) {
         if (!totals[key]) totals[key] = 0;
         totals[key] += mat.qty * rollsForGrade;
       }
+    }
+  }
+
+  return Object.entries(totals).map(([item, quantity]) => ({ item, quantity }));
+}
+
+export function calculateExperimentalCosts(selectedExperimentals) {
+  const totals = {};
+
+  for (const exp of selectedExperimentals) {
+    const moduleData = getExperimentals(exp.module);
+    if (!moduleData) continue;
+
+    const experimentalData = moduleData.experimentals[exp.experimental];
+    if (!experimentalData) continue;
+
+    // Multiply by quantity (number of times this experimental is being applied)
+    const quantity = exp.quantity || 1;
+
+    for (const mat of experimentalData) {
+      const key = mat.item;
+      if (!totals[key]) totals[key] = 0;
+      totals[key] += mat.qty * quantity;
     }
   }
 
