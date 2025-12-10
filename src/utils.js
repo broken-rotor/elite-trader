@@ -171,60 +171,86 @@ export function optimizeTrading(inventory, needs) {
         return i.quantity > 0 && mat && getMainCategory(mat.type) === getMainCategory(needMat.type);
       });
 
-      // Try to consolidate materials to the target quality first
+      // Build preliminary options to determine which type will be selected for conversion
+      const prelimOptions = [];
       for (const source of sameCategory) {
         const srcMat = getMaterial(source.item);
-        if (!srcMat || srcMat.type === needMat.type) continue;
+        if (!srcMat) continue;
+        const costPerUnit = getConversionCost(srcMat.type, srcMat.quality, needMat.type, needMat.quality);
+        if (costPerUnit > 0 && isFinite(costPerUnit)) {
+          const qualityDistance = Math.abs(srcMat.quality - needMat.quality);
+          prelimOptions.push({ source, srcMat, costPerUnit, qualityDistance });
+        }
+      }
 
-        // Check if we should downgrade this to match other materials at target quality
-        if (srcMat.quality > needMat.quality && srcMat.type !== needMat.type) {
-          // Calculate how much we'd have at target quality after downgrading
-          const yieldPerUnit = Math.pow(TRADE_DOWN_YIELD, srcMat.quality - needMat.quality);
-          const potentialAtTargetQuality = source.quantity * yieldPerUnit;
+      // Sort to find which type will be selected (same logic as main options sorting)
+      prelimOptions.sort((a, b) => {
+        if (a.qualityDistance !== b.qualityDistance) {
+          return a.qualityDistance - b.qualityDistance;
+        }
+        return a.costPerUnit - b.costPerUnit;
+      });
 
-          // Check if we have existing inventory at the intermediate quality (target quality, source type)
-          const intermediateItems = getMaterialsAtTypeQuality(srcMat.type, needMat.quality);
-          let existingAtIntermediate = 0;
-          for (const intItem of intermediateItems) {
-            const existing = inv.find(i => i.item === intItem.item && i.quantity > 0);
-            if (existing) {
-              existingAtIntermediate += existing.quantity;
+      // Get the type that will be selected for conversion
+      const selectedType = prelimOptions[0]?.srcMat.type;
+
+      // Only consolidate materials for the selected type
+      if (selectedType) {
+        for (const source of sameCategory) {
+          const srcMat = getMaterial(source.item);
+          // Only process materials of the selected type
+          if (!srcMat || srcMat.type !== selectedType || srcMat.type === needMat.type) continue;
+
+          // Check if we should downgrade this to match other materials at target quality
+          if (srcMat.quality > needMat.quality && srcMat.type !== needMat.type) {
+            // Calculate how much we'd have at target quality after downgrading
+            const yieldPerUnit = Math.pow(TRADE_DOWN_YIELD, srcMat.quality - needMat.quality);
+            const potentialAtTargetQuality = source.quantity * yieldPerUnit;
+
+            // Check if we have existing inventory at the intermediate quality (target quality, source type)
+            const intermediateItems = getMaterialsAtTypeQuality(srcMat.type, needMat.quality);
+            let existingAtIntermediate = 0;
+            for (const intItem of intermediateItems) {
+              const existing = inv.find(i => i.item === intItem.item && i.quantity > 0);
+              if (existing) {
+                existingAtIntermediate += existing.quantity;
+              }
             }
-          }
 
-          // If pooling would give us enough for the cross-type conversion
-          const neededForCrossType = need.quantity * TRADE_ACROSS_COST;
-          const totalAfterPooling = potentialAtTargetQuality + existingAtIntermediate;
+            // If pooling would give us enough for the cross-type conversion
+            const neededForCrossType = need.quantity * TRADE_ACROSS_COST;
+            const totalAfterPooling = potentialAtTargetQuality + existingAtIntermediate;
 
-          if (totalAfterPooling >= neededForCrossType && existingAtIntermediate > 0) {
-            // Calculate how much intermediate we still need after using existing inventory
-            const intermediateStillNeeded = Math.max(0, neededForCrossType - existingAtIntermediate);
+            if (totalAfterPooling >= neededForCrossType && existingAtIntermediate > 0) {
+              // Calculate how much intermediate we still need after using existing inventory
+              const intermediateStillNeeded = Math.max(0, neededForCrossType - existingAtIntermediate);
 
-            // Calculate how much source to downgrade to get that intermediate amount
-            const sourceToDowngrade = Math.ceil(intermediateStillNeeded / yieldPerUnit);
-            const actualSourceToDowngrade = Math.min(source.quantity, sourceToDowngrade);
+              // Calculate how much source to downgrade to get that intermediate amount
+              const sourceToDowngrade = Math.ceil(intermediateStillNeeded / yieldPerUnit);
+              const actualSourceToDowngrade = Math.min(source.quantity, sourceToDowngrade);
 
-            // Only downgrade if we actually need more intermediate material
-            if (actualSourceToDowngrade > 0) {
-              const intermediateItem = intermediateItems[0];
-              if (intermediateItem) {
-                const downgradeOutput = actualSourceToDowngrade * yieldPerUnit;
-                const downgradeRatio = srcMat.quality === needMat.quality + 1 ? '1:3' : `1:${yieldPerUnit}`;
+              // Only downgrade if we actually need more intermediate material
+              if (actualSourceToDowngrade > 0) {
+                const intermediateItem = intermediateItems[0];
+                if (intermediateItem) {
+                  const downgradeOutput = actualSourceToDowngrade * yieldPerUnit;
+                  const downgradeRatio = srcMat.quality === needMat.quality + 1 ? '1:3' : `1:${yieldPerUnit}`;
 
-                trades.push({
-                  action: 'DOWNGRADE',
-                  input: { item: source.item, type: srcMat.type, quality: srcMat.quality, amount: actualSourceToDowngrade },
-                  output: { item: intermediateItem.item, type: srcMat.type, quality: needMat.quality, amount: downgradeOutput },
-                  ratio: downgradeRatio
-                });
+                  trades.push({
+                    action: 'DOWNGRADE',
+                    input: { item: source.item, type: srcMat.type, quality: srcMat.quality, amount: actualSourceToDowngrade },
+                    output: { item: intermediateItem.item, type: srcMat.type, quality: needMat.quality, amount: downgradeOutput },
+                    ratio: downgradeRatio
+                  });
 
-                // Update inventory: remove only what we converted, add to intermediate
-                source.quantity -= actualSourceToDowngrade;
-                const existingIntermediate = inv.find(i => i.item === intermediateItem.item);
-                if (existingIntermediate) {
-                  existingIntermediate.quantity += downgradeOutput;
-                } else {
-                  inv.push({ item: intermediateItem.item, quantity: downgradeOutput });
+                  // Update inventory: remove only what we converted, add to intermediate
+                  source.quantity -= actualSourceToDowngrade;
+                  const existingIntermediate = inv.find(i => i.item === intermediateItem.item);
+                  if (existingIntermediate) {
+                    existingIntermediate.quantity += downgradeOutput;
+                  } else {
+                    inv.push({ item: intermediateItem.item, quantity: downgradeOutput });
+                  }
                 }
               }
             }

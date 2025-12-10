@@ -1388,6 +1388,59 @@ describe('Trading Edge Cases - Comprehensive', () => {
   });
 });
 
+describe('optimizeTrading with test data', () => {
+  test('optimizes trading using inventory from testdata/inventory1.json', () => {
+    const inventory = require('./testdata/inventory1.json');
+
+    // Test that inventory was loaded correctly
+    expect(inventory).toBeDefined();
+    expect(Array.isArray(inventory)).toBe(true);
+    expect(inventory.length).toBeGreaterThan(0);
+
+    // Each item should have 'item' and 'quantity' properties
+    inventory.forEach(item => {
+      expect(item).toHaveProperty('item');
+      expect(item).toHaveProperty('quantity');
+      expect(typeof item.item).toBe('string');
+      expect(typeof item.quantity).toBe('number');
+    });
+
+    // Test optimization with this inventory
+    const needs = [
+      { item: 'Galvanising Alloys', quantity: 6 }
+    ];
+
+    const result = optimizeTrading(inventory, needs);
+
+    // Should fulfill with trades
+    expect(result.fulfilled).toHaveLength(1);
+    expect(result.fulfilled[0].item).toBe('Galvanising Alloys');
+    expect(result.fulfilled[0].quantity).toBe(6);
+    expect(result.unfulfilled).toHaveLength(0);
+
+    expect(result.trades).toHaveLength(2);
+
+    // Trade 1: 4x Focus Crystals -> 12x Flawed Focus Crystals (downgrade)
+    const rutheniumTrade = result.trades.find(t => t.input.item === 'Focus Crystals');
+    expect(rutheniumTrade).toBeDefined();
+    expect(rutheniumTrade.action).toBe('DOWNGRADE');
+    expect(rutheniumTrade.input.amount).toBe(4);
+    expect(rutheniumTrade.output.amount).toBe(12);
+    expect(rutheniumTrade.output.item).toBe('Flawed Focus Crystals');
+    expect(rutheniumTrade.ratio).toBe('1:3');
+
+    // Trade 2: 36x Flawed Focus Crystals -> 6x Galvanising Alloys (cross-type)
+    const cadmiumToManganeseTrade = result.trades.find(t =>
+      t.input.item === 'Flawed Focus Crystals' && t.output.item === 'Galvanising Alloys'
+    );
+    expect(cadmiumToManganeseTrade).toBeDefined();
+    expect(cadmiumToManganeseTrade.action).toBe('CROSS_TYPE');
+    expect(cadmiumToManganeseTrade.input.amount).toBe(36);
+    expect(cadmiumToManganeseTrade.output.amount).toBe(6);
+    expect(cadmiumToManganeseTrade.ratio).toBe('6:1');
+  });
+});
+
 describe('calculateExperimentalCosts', () => {
   // Import the function we're testing
   const { calculateExperimentalCosts } = require('./utils');
