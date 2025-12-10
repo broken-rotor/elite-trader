@@ -1387,3 +1387,166 @@ describe('Trading Edge Cases - Comprehensive', () => {
     });
   });
 });
+
+describe('calculateExperimentalCosts', () => {
+  // Import the function we're testing
+  const { calculateExperimentalCosts } = require('./utils');
+
+  test('calculates costs for single experimental with quantity 1', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Deep Charge',
+        quantity: 1
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Deep Charge requires:
+    // - Atypical Disrupted Wake Echoes x5
+    // - Galvanising Alloys x3
+    // - Eccentric Hyperspace Trajectories x1
+    expect(result).toHaveLength(3);
+    expect(result.find(r => r.item === 'Atypical Disrupted Wake Echoes')?.quantity).toBe(5);
+    expect(result.find(r => r.item === 'Galvanising Alloys')?.quantity).toBe(3);
+    expect(result.find(r => r.item === 'Eccentric Hyperspace Trajectories')?.quantity).toBe(1);
+  });
+
+  test('multiplies material costs by quantity', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Deep Charge',
+        quantity: 3
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Deep Charge requires 5x Atypical Disrupted Wake Echoes per application
+    // With quantity 3, should need 15 total
+    expect(result.find(r => r.item === 'Atypical Disrupted Wake Echoes')?.quantity).toBe(15);
+    expect(result.find(r => r.item === 'Galvanising Alloys')?.quantity).toBe(9);
+    expect(result.find(r => r.item === 'Eccentric Hyperspace Trajectories')?.quantity).toBe(3);
+  });
+
+  test('skips experimentals with quantity 0', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Deep Charge',
+        quantity: 0
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // With quantity 0, should not calculate any costs
+    expect(result).toHaveLength(0);
+  });
+
+  test('combines costs from multiple experimentals', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Deep Charge',
+        quantity: 2
+      },
+      {
+        id: 2,
+        module: 'FSD',
+        experimental: 'Mass Manager',
+        quantity: 1
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Deep Charge (qty 2): 10x Atypical Disrupted Wake Echoes, 6x Galvanising Alloys, 2x Eccentric Hyperspace Trajectories
+    // Mass Manager (qty 1): 5x Atypical Disrupted Wake Echoes, 3x Galvanising Alloys, 1x Eccentric Hyperspace Trajectories
+    // Total: 15x Atypical Disrupted Wake Echoes, 9x Galvanising Alloys, 3x Eccentric Hyperspace Trajectories
+    expect(result.find(r => r.item === 'Atypical Disrupted Wake Echoes')?.quantity).toBe(15);
+    expect(result.find(r => r.item === 'Galvanising Alloys')?.quantity).toBe(9);
+    expect(result.find(r => r.item === 'Eccentric Hyperspace Trajectories')?.quantity).toBe(3);
+  });
+
+  test('handles mix of zero and non-zero quantities', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Deep Charge',
+        quantity: 0
+      },
+      {
+        id: 2,
+        module: 'FSD',
+        experimental: 'Mass Manager',
+        quantity: 2
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Only Mass Manager (qty 2) should be counted
+    expect(result.find(r => r.item === 'Atypical Disrupted Wake Echoes')?.quantity).toBe(10);
+    expect(result.find(r => r.item === 'Galvanising Alloys')?.quantity).toBe(6);
+    expect(result.find(r => r.item === 'Eccentric Hyperspace Trajectories')?.quantity).toBe(2);
+  });
+
+  test('returns empty array for empty input', () => {
+    const result = calculateExperimentalCosts([]);
+    expect(result).toHaveLength(0);
+  });
+
+  test('handles different experimental effects with different materials', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'Power Plant',
+        experimental: 'Thermal Spread',
+        quantity: 1
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Thermal Spread requires:
+    // - Grid Resistors x5
+    // - Vanadium x3
+    // - Heat Vanes x1
+    expect(result).toHaveLength(3);
+    expect(result.find(r => r.item === 'Grid Resistors')?.quantity).toBe(5);
+    expect(result.find(r => r.item === 'Vanadium')?.quantity).toBe(3);
+    expect(result.find(r => r.item === 'Heat Vanes')?.quantity).toBe(1);
+  });
+
+  test('aggregates same materials from different experimentals', () => {
+    const selectedExperimentals = [
+      {
+        id: 1,
+        module: 'FSD',
+        experimental: 'Stripped Down',
+        quantity: 1
+      },
+      {
+        id: 2,
+        module: 'Power Plant',
+        experimental: 'Stripped Down',
+        quantity: 1
+      }
+    ];
+
+    const result = calculateExperimentalCosts(selectedExperimentals);
+
+    // Both require Proto Light Alloys (1 each) = 2 total
+    // They also share Galvanising Alloys and other materials
+    const protoLightAlloys = result.find(r => r.item === 'Proto Light Alloys');
+    expect(protoLightAlloys?.quantity).toBe(2);
+  });
+});

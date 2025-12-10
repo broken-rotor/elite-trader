@@ -1,5 +1,6 @@
 import React from 'react';
 import { EXPERIMENTALS_DB, getMaterial } from '../database';
+import Tooltip from './Tooltip';
 
 const getQualityClass = (quality) => `quality-${quality}`;
 const getQualityBgClass = (quality) => `quality-bg-${quality}`;
@@ -13,7 +14,11 @@ function ExperimentalsTab({
   addExperimental,
   removeExperimental,
   updateExperimentalQuantity,
-  experimentalNeeds
+  experimentalNeeds,
+  performExperimentalRoll,
+  inventory,
+  experimentalRollHistory,
+  undoExperimentalRoll
 }) {
   const availableExperimentals = selectedModule ? Object.keys(EXPERIMENTALS_DB[selectedModule]?.experimentals || {}) : [];
 
@@ -58,6 +63,42 @@ function ExperimentalsTab({
       {/* Selected Experimentals */}
       <div className="list-container">
         {selectedExperimentals.map(exp => {
+          const currentQuantity = exp.quantity ?? 1;
+          const moduleData = EXPERIMENTALS_DB[exp.module];
+          const experimentalMats = moduleData?.experimentals[exp.experimental] || [];
+
+          // Check if we have enough materials for this roll and collect missing materials
+          const missingMaterials = [];
+          const canPerformRoll = currentQuantity > 0 && experimentalMats.every(mat => {
+            const invItem = inventory.find(i => i.item === mat.item);
+            const hasEnough = invItem && invItem.quantity >= mat.qty;
+            if (!hasEnough) {
+              const have = invItem?.quantity || 0;
+              const material = getMaterial(mat.item);
+              missingMaterials.push({ item: mat.item, qty: mat.qty, have, quality: material?.quality });
+            }
+            return hasEnough;
+          });
+
+          // Build tooltip content
+          let tooltipContent;
+          if (currentQuantity <= 0) {
+            tooltipContent = <span>No rolls remaining</span>;
+          } else if (canPerformRoll) {
+            tooltipContent = <span>Perform this roll</span>;
+          } else {
+            tooltipContent = (
+              <div>
+                <div className="tooltip-content-line">Missing materials:</div>
+                {missingMaterials.map((mat, idx) => (
+                  <div key={idx} className="tooltip-content-line">
+                    <span className={getQualityClass(mat.quality)}>{mat.item}</span>: need {mat.qty}, have {mat.have}
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
           return (
             <div key={exp.id} className="list-item">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -72,12 +113,12 @@ function ExperimentalsTab({
                 <label style={{ fontSize: '14px', color: '#94a3b8' }}>Quantity:</label>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max="99"
-                  value={exp.quantity || 1}
+                  value={exp.quantity ?? 1}
                   onChange={(e) => {
-                    const value = parseInt(e.target.value) || 1;
-                    updateExperimentalQuantity(exp.id, Math.max(1, Math.min(99, value)));
+                    const value = parseInt(e.target.value) || 0;
+                    updateExperimentalQuantity(exp.id, Math.max(0, Math.min(99, value)));
                   }}
                   style={{
                     width: '60px',
@@ -89,6 +130,16 @@ function ExperimentalsTab({
                     fontSize: '14px'
                   }}
                 />
+                <Tooltip content={tooltipContent} disabled={!canPerformRoll}>
+                  <button
+                    className="btn-perform-roll"
+                    onClick={() => performExperimentalRoll(exp.id)}
+                    disabled={!canPerformRoll}
+                    style={{ marginLeft: '8px' }}
+                  >
+                    Roll
+                  </button>
+                </Tooltip>
               </div>
             </div>
           );
@@ -114,6 +165,29 @@ function ExperimentalsTab({
                 </span>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Roll History */}
+      {experimentalRollHistory.length > 0 && (
+        <div className="material-summary">
+          <h3>Recent Rolls</h3>
+          <div className="history-list">
+            {experimentalRollHistory.slice(0, 5).map((entry) => (
+              <div key={entry.id} className="history-item">
+                <span className="history-text">
+                  {entry.moduleName} - {entry.experimentalName}
+                </span>
+                <button
+                  className="btn-undo"
+                  onClick={() => undoExperimentalRoll(entry)}
+                  title="Undo this roll"
+                >
+                  Undo
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

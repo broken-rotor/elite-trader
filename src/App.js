@@ -3,7 +3,8 @@ import './App.css';
 import {
   MATERIALS_DB,
   getMaterial,
-  BLUEPRINTS_DB
+  BLUEPRINTS_DB,
+  EXPERIMENTALS_DB
 } from './database';
 import {
   calculateBlueprintCosts,
@@ -54,6 +55,7 @@ function App() {
   // History for undo functionality
   const [rollHistory, setRollHistory] = useState([]);
   const [tradeHistory, setTradeHistory] = useState([]);
+  const [experimentalRollHistory, setExperimentalRollHistory] = useState([]);
 
   const [searchOwned, setSearchOwned] = useState('');
   const [searchNeeded, setSearchNeeded] = useState('');
@@ -300,6 +302,79 @@ function App() {
     setRollHistory(rollHistory.filter(h => h.id !== historyEntry.id));
   };
 
+  const performExperimentalRoll = (experimentalId) => {
+    const experimental = selectedExperimentals.find(exp => exp.id === experimentalId);
+    if (!experimental) return;
+
+    const currentQuantity = experimental.quantity ?? 1;
+    if (currentQuantity <= 0) return;
+
+    // Get materials needed for this experimental
+    const moduleData = EXPERIMENTALS_DB[experimental.module];
+    if (!moduleData) return;
+
+    const experimentalMats = moduleData.experimentals[experimental.experimental];
+    if (!experimentalMats) return;
+
+    // Check if we have enough materials
+    const newInventory = [...inventory];
+    const materialsNeeded = experimentalMats.map(m => ({ item: m.item, qty: m.qty }));
+
+    // Check availability
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      if (!invItem || invItem.quantity < needed.qty) {
+        alert(`Not enough ${needed.item}. Need ${needed.qty}, have ${invItem?.quantity || 0}`);
+        return;
+      }
+    }
+
+    // Record this action for undo
+    const historyEntry = {
+      id: Date.now(),
+      experimentalId,
+      moduleName: moduleData.name,
+      experimentalName: experimental.experimental,
+      materialsConsumed: materialsNeeded.map(m => ({ ...m })),
+      previousQuantity: currentQuantity
+    };
+
+    // Deduct materials
+    for (const needed of materialsNeeded) {
+      const invItem = newInventory.find(i => i.item === needed.item);
+      invItem.quantity -= needed.qty;
+    }
+
+    // Filter out zero-quantity items
+    setInventory(newInventory.filter(i => i.quantity > 0));
+
+    // Reduce quantity
+    updateExperimentalQuantity(experimentalId, Math.max(0, currentQuantity - 1));
+
+    // Add to history
+    setExperimentalRollHistory([historyEntry, ...experimentalRollHistory]);
+  };
+
+  const undoExperimentalRoll = (historyEntry) => {
+    // Restore materials
+    const newInventory = [...inventory];
+    for (const material of historyEntry.materialsConsumed) {
+      const invItem = newInventory.find(i => i.item === material.item);
+      if (invItem) {
+        invItem.quantity += material.qty;
+      } else {
+        newInventory.push({ item: material.item, quantity: material.qty });
+      }
+    }
+    setInventory(newInventory);
+
+    // Restore quantity
+    updateExperimentalQuantity(historyEntry.experimentalId, historyEntry.previousQuantity);
+
+    // Remove from history
+    setExperimentalRollHistory(experimentalRollHistory.filter(h => h.id !== historyEntry.id));
+  };
+
   const removeFromInventory = (item) =>
     setInventory(inventory.filter(i => i.item !== item));
 
@@ -485,6 +560,10 @@ function App() {
             removeExperimental={removeExperimental}
             updateExperimentalQuantity={updateExperimentalQuantity}
             experimentalNeeds={experimentalNeeds}
+            performExperimentalRoll={performExperimentalRoll}
+            inventory={inventory}
+            experimentalRollHistory={experimentalRollHistory}
+            undoExperimentalRoll={undoExperimentalRoll}
           />
         )}
 

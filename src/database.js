@@ -376,27 +376,6 @@ export const BLUEPRINTS_DB = {
   }
 };
 
-// Helper functions
-export function getMaterial(itemName) {
-  return MATERIALS_DB.find(m => m.item === itemName);
-}
-
-export function getMaterialsAtTypeQuality(type, quality) {
-  return MATERIALS_DB.filter(m => m.type === type && m.quality === quality);
-}
-
-export function getMainCategory(type) {
-  // Extract the main category: "Encoded", "Manufactured", or "Raw"
-  if (type.startsWith('Encoded')) return 'Encoded';
-  if (type.startsWith('Manufactured')) return 'Manufactured';
-  if (type.startsWith('Raw')) return 'Raw';
-  return type; // Fallback for unknown types
-}
-
-export function getBlueprint(moduleName) {
-  return BLUEPRINTS_DB[moduleName];
-}
-
 // Experimental Effects Database
 export const EXPERIMENTALS_DB = {
   // Core Internals Modules
@@ -627,6 +606,27 @@ export const EXPERIMENTALS_DB = {
     }
   }
 };
+
+// Helper functions
+export function getMaterial(itemName) {
+  return MATERIALS_DB.find(m => m.item === itemName);
+}
+
+export function getMaterialsAtTypeQuality(type, quality) {
+  return MATERIALS_DB.filter(m => m.type === type && m.quality === quality);
+}
+
+export function getMainCategory(type) {
+  // Extract the main category: "Encoded", "Manufactured", or "Raw"
+  if (type.startsWith('Encoded')) return 'Encoded';
+  if (type.startsWith('Manufactured')) return 'Manufactured';
+  if (type.startsWith('Raw')) return 'Raw';
+  return type; // Fallback for unknown types
+}
+
+export function getBlueprint(moduleName) {
+  return BLUEPRINTS_DB[moduleName];
+}
 
 export function getExperimentals(moduleName) {
   return EXPERIMENTALS_DB[moduleName];

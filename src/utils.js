@@ -926,7 +926,10 @@ export function calculateExperimentalCosts(selectedExperimentals) {
     if (!experimentalData) continue;
 
     // Multiply by quantity (number of times this experimental is being applied)
-    const quantity = exp.quantity || 1;
+    const quantity = exp.quantity ?? 1;
+
+    // Skip if quantity is 0
+    if (quantity === 0) continue;
 
     for (const mat of experimentalData) {
       const key = mat.item;
