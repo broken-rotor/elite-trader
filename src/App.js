@@ -595,6 +595,7 @@ function App() {
             updateInventoryQuantity={updateInventoryQuantity}
             removeFromInventory={removeFromInventory}
             inventory={inventory}
+            setInventory={setInventory}
           />
         )}
 
