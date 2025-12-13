@@ -17,7 +17,8 @@ function InventoryTab({
   filteredInventoryByCategory,
   updateInventoryQuantity,
   removeFromInventory,
-  inventory
+  inventory,
+  setInventory
 }) {
   const downloadInventory = () => {
     const dataStr = JSON.stringify(inventory, null, 2);
@@ -32,13 +33,63 @@ function InventoryTab({
     URL.revokeObjectURL(url);
   };
 
+  const uploadInventory = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const uploadedData = JSON.parse(e.target.result);
+          
+          // Validate the uploaded data
+          if (!Array.isArray(uploadedData)) {
+            alert('Invalid file format: Expected an array of inventory items.');
+            return;
+          }
+
+          // Validate each item in the array
+          const isValidInventory = uploadedData.every(item => 
+            item && 
+            typeof item === 'object' && 
+            typeof item.item === 'string' && 
+            typeof item.quantity === 'number' && 
+            item.quantity >= 0
+          );
+
+          if (!isValidInventory) {
+            alert('Invalid file format: Each item must have "item" (string) and "quantity" (number) properties.');
+            return;
+          }
+
+          // Replace the current inventory with the uploaded data
+          setInventory(uploadedData);
+          alert('Inventory uploaded successfully!');
+        } catch (error) {
+          alert('Error reading file: Invalid JSON format.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   return (
     <div className="panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="blue">Your Inventory</h2>
-        <button className="btn-download" onClick={downloadInventory}>
-          ⬇️ Download
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn-download" onClick={uploadInventory}>
+            ⬆️ Upload
+          </button>
+          <button className="btn-download" onClick={downloadInventory}>
+            ⬇️ Download
+          </button>
+        </div>
       </div>
 
       {/* Inventory Sub-tabs */}

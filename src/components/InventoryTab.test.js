@@ -19,7 +19,9 @@ describe('InventoryTab', () => {
     addToInventory: jest.fn(),
     filteredInventoryByCategory: [],
     updateInventoryQuantity: jest.fn(),
-    removeFromInventory: jest.fn()
+    removeFromInventory: jest.fn(),
+    inventory: [],
+    setInventory: jest.fn()
   };
 
   beforeEach(() => {
@@ -172,5 +174,65 @@ describe('InventoryTab', () => {
     const invItem = screen.getByText('Iron');
     expect(invItem).toHaveClass('quality-1');
     expect(invItem).toBeInTheDocument();
+  });
+
+  describe('Download and Upload functionality', () => {
+    test('renders download button', () => {
+      render(<InventoryTab {...defaultProps} />);
+      
+      const downloadButton = screen.getByRole('button', { name: /download/i });
+      expect(downloadButton).toBeInTheDocument();
+      expect(downloadButton).toHaveClass('btn-download');
+    });
+
+    test('renders upload button', () => {
+      render(<InventoryTab {...defaultProps} />);
+      
+      const uploadButton = screen.getByRole('button', { name: /upload/i });
+      expect(uploadButton).toBeInTheDocument();
+      expect(uploadButton).toHaveClass('btn-download');
+    });
+
+    test('upload and download buttons are positioned together', () => {
+      render(<InventoryTab {...defaultProps} />);
+      
+      const uploadButton = screen.getByRole('button', { name: /upload/i });
+      const downloadButton = screen.getByRole('button', { name: /download/i });
+      
+      // Both buttons should be present
+      expect(uploadButton).toBeInTheDocument();
+      expect(downloadButton).toBeInTheDocument();
+      
+      // Both should have the same CSS class for consistent styling
+      expect(uploadButton).toHaveClass('btn-download');
+      expect(downloadButton).toHaveClass('btn-download');
+    });
+
+    test('upload button has correct emoji and text', () => {
+      render(<InventoryTab {...defaultProps} />);
+      
+      const uploadButton = screen.getByRole('button', { name: /upload/i });
+      expect(uploadButton).toHaveTextContent('⬆️ Upload');
+    });
+
+    test('download button has correct emoji and text', () => {
+      render(<InventoryTab {...defaultProps} />);
+      
+      const downloadButton = screen.getByRole('button', { name: /download/i });
+      expect(downloadButton).toHaveTextContent('⬇️ Download');
+    });
+
+    test('setInventory prop is passed correctly', () => {
+      const mockSetInventory = jest.fn();
+      const propsWithSetInventory = {
+        ...defaultProps,
+        setInventory: mockSetInventory
+      };
+      
+      render(<InventoryTab {...propsWithSetInventory} />);
+      
+      // Component should render without errors when setInventory is provided
+      expect(screen.getByRole('button', { name: /upload/i })).toBeInTheDocument();
+    });
   });
 });
