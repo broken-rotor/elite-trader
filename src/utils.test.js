@@ -1439,6 +1439,37 @@ describe('optimizeTrading with test data', () => {
     expect(cadmiumToManganeseTrade.output.amount).toBe(6);
     expect(cadmiumToManganeseTrade.ratio).toBe('6:1');
   });
+
+  test('optimizes trading using inventory from testdata/inventory2.json', () => {
+    const inventory = require('./testdata/inventory2.json');
+
+    // Test that inventory was loaded correctly
+    expect(inventory).toBeDefined();
+    expect(Array.isArray(inventory)).toBe(true);
+    expect(inventory.length).toBeGreaterThan(0);
+
+    // Each item should have 'item' and 'quantity' properties
+    inventory.forEach(item => {
+      expect(item).toHaveProperty('item');
+      expect(item).toHaveProperty('quantity');
+      expect(typeof item.item).toBe('string');
+      expect(typeof item.quantity).toBe('number');
+    });
+
+    // Test optimization with this inventory
+    const needs = [
+      { item: 'Phase Alloys', quantity: 1 }
+    ];
+
+    const result = optimizeTrading(inventory, needs);
+
+    expect(result.fulfilled).toHaveLength(0);
+    expect(result.unfulfilled).toHaveLength(1);
+    expect(result.unfulfilled[0].item).toBe('Phase Alloys');
+    expect(result.unfulfilled[0].quantity).toBe(1);
+
+    expect(result.trades).toHaveLength(0);
+  });
 });
 
 describe('calculateExperimentalCosts', () => {

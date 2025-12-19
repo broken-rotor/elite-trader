@@ -337,15 +337,24 @@ export function optimizeTrading(inventory, needs) {
                 // Downgrade: 1 source → multiple intermediate
                 const yieldPerSource = Math.pow(TRADE_DOWN_YIELD, opt.srcMat.quality - intItem.quality);
                 sourceNeededForIntermediate = Math.ceil(intermediateStillNeeded / yieldPerSource);
-                intermediateFromSource = sourceNeededForIntermediate * yieldPerSource;
               } else {
                 // Upgrade: need multiple source → 1 intermediate
                 const costPerIntermediate = Math.pow(TRADE_UP_COST, intItem.quality - opt.srcMat.quality);
                 sourceNeededForIntermediate = Math.ceil(intermediateStillNeeded * costPerIntermediate);
-                intermediateFromSource = Math.floor(sourceNeededForIntermediate / costPerIntermediate);
               }
 
               effectiveSourceQuantity = Math.min(opt.source.quantity, sourceNeededForIntermediate);
+
+              // Recalculate intermediateFromSource based on what we actually have
+              if (opt.srcMat.quality > intItem.quality) {
+                // Downgrade: 1 source → multiple intermediate
+                const yieldPerSource = Math.pow(TRADE_DOWN_YIELD, opt.srcMat.quality - intItem.quality);
+                intermediateFromSource = effectiveSourceQuantity * yieldPerSource;
+              } else {
+                // Upgrade: need multiple source → 1 intermediate
+                const costPerIntermediate = Math.pow(TRADE_UP_COST, intItem.quality - opt.srcMat.quality);
+                intermediateFromSource = Math.floor(effectiveSourceQuantity / costPerIntermediate);
+              }
 
               // Calculate total intermediate after pooling (existing + produced)
               const totalIntermediate = intermediateWeHave + intermediateFromSource;
