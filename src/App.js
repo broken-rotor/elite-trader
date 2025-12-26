@@ -619,6 +619,7 @@ function App() {
             inventory={inventory}
             updateInventoryQuantity={updateInventoryQuantity}
             setInventory={setInventory}
+            allNeeds={allNeeds}
           />
         )}
 

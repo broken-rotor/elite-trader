@@ -913,6 +913,19 @@
   color: #0f172a;
 }
 
+.material-required {
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.material-required.satisfied {
+  color: #f97316;
+}
+
+.material-required.unsatisfied {
+  color: #dc2626;
+}
+
 .material-quantity-input {
   width: 80px;
   background-color: #1e293b;

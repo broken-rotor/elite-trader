@@ -34,7 +34,7 @@ const CATEGORY_ORDER = {
   ]
 };
 
-function MaterialTraderTab({ traderType, setTraderType, inventory, updateInventoryQuantity, setInventory }) {
+function MaterialTraderTab({ traderType, setTraderType, inventory, updateInventoryQuantity, setInventory, allNeeds }) {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
 
@@ -130,6 +130,13 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     return invItem ? invItem.quantity : 0;
   };
 
+  // Get required quantity from needs
+  const getRequiredQuantity = (materialName) => {
+    if (!materialName || !allNeeds) return 0;
+    const needItem = allNeeds.find(n => n.item === materialName);
+    return needItem ? needItem.quantity : 0;
+  };
+
   // Handle cell click to start editing
   const handleCellClick = (material) => {
     if (!material) return;
@@ -161,6 +168,7 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     }
 
     const quantity = getInventoryQuantity(material.item);
+    const required = getRequiredQuantity(material.item);
     const isEditing = editingCell === material.item;
     const qualityClass = `quality-${material.quality}`;
 
@@ -185,7 +193,14 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
             min="0"
           />
         ) : (
-          <div className="material-quantity">{quantity || 0}</div>
+          <div className="material-quantity">
+            {quantity || 0}
+            {required > 0 && (
+              <span className={`material-required ${quantity >= required ? 'satisfied' : 'unsatisfied'}`}>
+                /{required}
+              </span>
+            )}
+          </div>
         )}
         <div className="material-name">{material.item}</div>
       </div>
