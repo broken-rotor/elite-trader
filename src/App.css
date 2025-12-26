@@ -915,13 +915,13 @@
 
 .material-quantity-input {
   width: 80px;
-  background-color: rgba(15, 23, 42, 0.9);
-  border: 2px solid #0f172a;
+  background-color: #1e293b;
+  border: 1px solid #334155;
   border-radius: 6px;
   padding: 6px 8px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #f97316;
   text-align: center;
 }
 
