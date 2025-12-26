@@ -18,6 +18,7 @@ function BlueprintsTab({
   strategy,
   setStrategy,
   selectedBlueprints,
+  setSelectedBlueprints,
   addBlueprint,
   removeBlueprint,
   updateBlueprintRolls,
@@ -27,6 +28,67 @@ function BlueprintsTab({
   rollHistory,
   undoRoll
 }) {
+  // Download blueprints as JSON
+  const downloadBlueprints = () => {
+    const dataStr = JSON.stringify(selectedBlueprints, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'elite-trader-blueprints.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Upload blueprints from JSON file
+  const uploadBlueprints = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const uploadedData = JSON.parse(e.target.result);
+
+          // Validate the uploaded data
+          if (!Array.isArray(uploadedData)) {
+            alert('Invalid file format: Expected an array of blueprints.');
+            return;
+          }
+
+          // Validate each blueprint in the array
+          const isValidBlueprints = uploadedData.every(bp =>
+            bp &&
+            typeof bp === 'object' &&
+            typeof bp.module === 'string' &&
+            typeof bp.blueprint === 'string' &&
+            typeof bp.fromGrade === 'number' &&
+            typeof bp.toGrade === 'number'
+          );
+
+          if (!isValidBlueprints) {
+            alert('Invalid file format: Each blueprint must have valid properties.');
+            return;
+          }
+
+          // Replace the current blueprints with the uploaded data
+          setSelectedBlueprints(uploadedData);
+          alert('Blueprints uploaded successfully!');
+        } catch (error) {
+          alert('Error reading file: Invalid JSON format.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   const availableBlueprints = selectedModule ? Object.keys(BLUEPRINTS_DB[selectedModule]?.blueprints || {}) : [];
 
   // Get available grades for the currently selected blueprint
@@ -64,7 +126,17 @@ function BlueprintsTab({
 
   return (
     <div className="panel">
-      <h2 className="orange">Select Engineering Blueprints</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 className="orange" style={{ margin: 0 }}>Select Engineering Blueprints</h2>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn-download" onClick={uploadBlueprints}>
+            ⬆️ Upload
+          </button>
+          <button className="btn-download" onClick={downloadBlueprints}>
+            ⬇️ Download
+          </button>
+        </div>
+      </div>
 
       <div className="blueprint-grid">
         <select

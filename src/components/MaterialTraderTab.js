@@ -193,10 +193,10 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
             min="0"
           />
         ) : (
-          <div className="material-quantity">
+          <div className={`material-quantity ${quantity >= required ? 'satisfied' : 'unsatisfied'}`}>
             {quantity || 0}
             {required > 0 && (
-              <span className={`material-required ${quantity >= required ? 'satisfied' : 'unsatisfied'}`}>
+              <span className="material-required">
                 /{required}
               </span>
             )}

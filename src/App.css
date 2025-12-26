@@ -903,10 +903,16 @@
 .material-quantity {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f97316;
-  min-height: 36px;
+  line-height: 36px;
   display: flex;
-  align-items: center;
+}
+
+.material-quantity.satisfied {
+  color: #f97316;
+}
+
+.material-quantity.unsatisfied {
+  color: #dc2626;
 }
 
 .material-cell.editing .material-quantity {
@@ -914,16 +920,11 @@
 }
 
 .material-required {
+  font-size: 1rem;
   font-weight: 600;
   margin-left: 2px;
-}
-
-.material-required.satisfied {
-  color: #f97316;
-}
-
-.material-required.unsatisfied {
-  color: #dc2626;
+  vertical-align: bottom;
+  line-height: 42px;
 }
 
 .material-quantity-input {

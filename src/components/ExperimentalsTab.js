@@ -11,6 +11,7 @@ function ExperimentalsTab({
   selectedExperimental,
   setSelectedExperimental,
   selectedExperimentals,
+  setSelectedExperimentals,
   addExperimental,
   removeExperimental,
   updateExperimentalQuantity,
@@ -20,11 +21,81 @@ function ExperimentalsTab({
   experimentalRollHistory,
   undoExperimentalRoll
 }) {
+  // Download experimentals as JSON
+  const downloadExperimentals = () => {
+    const dataStr = JSON.stringify(selectedExperimentals, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'elite-trader-experimentals.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Upload experimentals from JSON file
+  const uploadExperimentals = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const uploadedData = JSON.parse(e.target.result);
+
+          // Validate the uploaded data
+          if (!Array.isArray(uploadedData)) {
+            alert('Invalid file format: Expected an array of experimentals.');
+            return;
+          }
+
+          // Validate each experimental in the array
+          const isValidExperimentals = uploadedData.every(exp =>
+            exp &&
+            typeof exp === 'object' &&
+            typeof exp.module === 'string' &&
+            typeof exp.experimental === 'string' &&
+            (exp.quantity === undefined || typeof exp.quantity === 'number')
+          );
+
+          if (!isValidExperimentals) {
+            alert('Invalid file format: Each experimental must have valid properties.');
+            return;
+          }
+
+          // Replace the current experimentals with the uploaded data
+          setSelectedExperimentals(uploadedData);
+          alert('Experimentals uploaded successfully!');
+        } catch (error) {
+          alert('Error reading file: Invalid JSON format.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   const availableExperimentals = selectedModule ? Object.keys(EXPERIMENTALS_DB[selectedModule]?.experimentals || {}) : [];
 
   return (
     <div className="panel">
-      <h2 className="orange">Select Experimental Effects</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 className="orange" style={{ margin: 0 }}>Select Experimental Effects</h2>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn-download" onClick={uploadExperimentals}>
+            ⬆️ Upload
+          </button>
+          <button className="btn-download" onClick={downloadExperimentals}>
+            ⬇️ Download
+          </button>
+        </div>
+      </div>
 
       <div className="blueprint-grid">
         <select
