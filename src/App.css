@@ -751,3 +751,247 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* Material Trader Tab */
+.material-trader-tab {
+  background-color: #0f172a;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #1e293b;
+}
+
+/* Trader Type Sub-tabs */
+.trader-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.trader-type-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #f97316;
+  background-color: #1e293b;
+  color: #f97316;
+}
+
+.trader-type-btn.active {
+  background-color: #f97316;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.trader-type-btn:hover {
+  background-color: #fb923c;
+  color: #0f172a;
+}
+
+/* Material Grid Container */
+.material-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Category Section */
+.material-category {
+  margin-bottom: 16px;
+}
+
+.category-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f97316;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f97316;
+  letter-spacing: 0.5px;
+}
+
+/* Material Grid */
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .material-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .material-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Material Cell */
+.material-cell {
+  background-color: #0a0f1a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 140px;
+}
+
+.material-cell:hover {
+  border-color: #f97316;
+  background-color: #1e293b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.material-cell.editing {
+  background-color: #f97316;
+  border-color: #fb923c;
+}
+
+.material-cell.empty {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background-color: #050810;
+}
+
+.material-cell.empty:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #1e293b;
+  background-color: #050810;
+}
+
+/* Grade Indicator */
+.grade-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+  border: 1px solid #f97316;
+}
+
+/* Material Icon */
+.material-icon {
+  font-size: 2rem;
+  color: #f97316;
+  opacity: 0.8;
+}
+
+.material-cell.editing .material-icon {
+  color: #0f172a;
+}
+
+/* Material Quantity */
+.material-quantity {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f97316;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.material-cell.editing .material-quantity {
+  color: #0f172a;
+}
+
+.material-quantity-input {
+  width: 80px;
+  background-color: rgba(15, 23, 42, 0.9);
+  border: 2px solid #0f172a;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+}
+
+.material-quantity-input:focus {
+  outline: none;
+  border-color: #0a0f1a;
+}
+
+/* Material Name */
+.material-name {
+  font-size: 0.75rem;
+  color: #f97316;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.material-cell.editing .material-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.material-cell.empty .material-name {
+  color: #475569;
+}
+
+/* Quality-based styling for material cells */
+.material-cell.quality-1 {
+  border-color: #4b5563;
+}
+
+.material-cell.quality-1:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+}
+
+.material-cell.quality-2 {
+  border-color: #22c55e;
+}
+
+.material-cell.quality-2:hover {
+  border-color: #4ade80;
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+}
+
+.material-cell.quality-3 {
+  border-color: #3b82f6;
+}
+
+.material-cell.quality-3:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.material-cell.quality-4 {
+  border-color: #a855f7;
+}
+
+.material-cell.quality-4:hover {
+  border-color: #c084fc;
+  box-shadow: 0 4px 12px rgba(192, 132, 252, 0.3);
+}
+
+.material-cell.quality-5 {
+  border-color: #eab308;
+}
+
+.material-cell.quality-5:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}

@@ -16,10 +16,12 @@ import BlueprintsTab from './components/BlueprintsTab';
 import ManualEntryTab from './components/ManualEntryTab';
 import InventoryTab from './components/InventoryTab';
 import ExperimentalsTab from './components/ExperimentalsTab';
+import MaterialTraderTab from './components/MaterialTraderTab';
 import ResultsPanel from './components/ResultsPanel';
 
 function App() {
   const [activeTab, setActiveTab] = useState('blueprints');
+  const [traderType, setTraderType] = useState('raw');
   const [inventorySubTab, setInventorySubTab] = useState('materials');
 
   // Load inventory from localStorage or use defaults
@@ -397,9 +399,14 @@ function App() {
     if (qty <= 0) {
       removeFromInventory(item);
     } else {
-      setInventory(inventory.map(i =>
-        i.item === item ? { ...i, quantity: qty } : i
-      ));
+      const existing = inventory.find(i => i.item === item);
+      if (existing) {
+        setInventory(inventory.map(i =>
+          i.item === item ? { ...i, quantity: qty } : i
+        ));
+      } else {
+        setInventory([...inventory, { item, quantity: qty }]);
+      }
     }
   };
 
@@ -522,6 +529,12 @@ function App() {
           >
             📦 Inventory
           </button>
+          <button
+            className={`tab-btn ${activeTab === 'trader' ? 'active' : ''}`}
+            onClick={() => setActiveTab('trader')}
+          >
+            🔄 Material Trader
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -599,8 +612,18 @@ function App() {
           />
         )}
 
+        {activeTab === 'trader' && (
+          <MaterialTraderTab
+            traderType={traderType}
+            setTraderType={setTraderType}
+            inventory={inventory}
+            updateInventoryQuantity={updateInventoryQuantity}
+            setInventory={setInventory}
+          />
+        )}
+
         {/* Results Panel */}
-        {activeTab !== 'inventory' && (
+        {activeTab !== 'inventory' && activeTab !== 'trader' && (
           <ResultsPanel
             allNeeds={allNeeds}
             result={result}
