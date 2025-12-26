@@ -12,6 +12,8 @@ function ExperimentalsTab({
   setSelectedExperimental,
   selectedExperimentals,
   setSelectedExperimentals,
+  selectedBlueprints,
+  setSelectedBlueprints,
   addExperimental,
   removeExperimental,
   updateExperimentalQuantity,
@@ -21,21 +23,25 @@ function ExperimentalsTab({
   experimentalRollHistory,
   undoExperimentalRoll
 }) {
-  // Download experimentals as JSON
+  // Download blueprints and experimentals as JSON
   const downloadExperimentals = () => {
-    const dataStr = JSON.stringify(selectedExperimentals, null, 2);
+    const combinedData = {
+      blueprints: selectedBlueprints,
+      experimentals: selectedExperimentals
+    };
+    const dataStr = JSON.stringify(combinedData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'elite-trader-experimentals.json';
+    link.download = 'elite-trader-builds.json';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  // Upload experimentals from JSON file
+  // Upload blueprints and experimentals from JSON file
   const uploadExperimentals = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -50,28 +56,62 @@ function ExperimentalsTab({
           const uploadedData = JSON.parse(e.target.result);
 
           // Validate the uploaded data
-          if (!Array.isArray(uploadedData)) {
-            alert('Invalid file format: Expected an array of experimentals.');
+          if (!uploadedData || typeof uploadedData !== 'object') {
+            alert('Invalid file format: Expected an object with blueprints and experimentals.');
             return;
           }
 
-          // Validate each experimental in the array
-          const isValidExperimentals = uploadedData.every(exp =>
-            exp &&
-            typeof exp === 'object' &&
-            typeof exp.module === 'string' &&
-            typeof exp.experimental === 'string' &&
-            (exp.quantity === undefined || typeof exp.quantity === 'number')
-          );
+          // Validate blueprints if present
+          if (uploadedData.blueprints) {
+            if (!Array.isArray(uploadedData.blueprints)) {
+              alert('Invalid file format: blueprints must be an array.');
+              return;
+            }
 
-          if (!isValidExperimentals) {
-            alert('Invalid file format: Each experimental must have valid properties.');
-            return;
+            const isValidBlueprints = uploadedData.blueprints.every(bp =>
+              bp &&
+              typeof bp === 'object' &&
+              typeof bp.module === 'string' &&
+              typeof bp.blueprint === 'string' &&
+              typeof bp.fromGrade === 'number' &&
+              typeof bp.toGrade === 'number'
+            );
+
+            if (!isValidBlueprints) {
+              alert('Invalid file format: Each blueprint must have valid properties.');
+              return;
+            }
           }
 
-          // Replace the current experimentals with the uploaded data
-          setSelectedExperimentals(uploadedData);
-          alert('Experimentals uploaded successfully!');
+          // Validate experimentals if present
+          if (uploadedData.experimentals) {
+            if (!Array.isArray(uploadedData.experimentals)) {
+              alert('Invalid file format: experimentals must be an array.');
+              return;
+            }
+
+            const isValidExperimentals = uploadedData.experimentals.every(exp =>
+              exp &&
+              typeof exp === 'object' &&
+              typeof exp.module === 'string' &&
+              typeof exp.experimental === 'string' &&
+              (exp.quantity === undefined || typeof exp.quantity === 'number')
+            );
+
+            if (!isValidExperimentals) {
+              alert('Invalid file format: Each experimental must have valid properties.');
+              return;
+            }
+          }
+
+          // Replace the current data with the uploaded data
+          if (uploadedData.blueprints) {
+            setSelectedBlueprints(uploadedData.blueprints);
+          }
+          if (uploadedData.experimentals) {
+            setSelectedExperimentals(uploadedData.experimentals);
+          }
+          alert('Builds uploaded successfully!');
         } catch (error) {
           alert('Error reading file: Invalid JSON format.');
         }
@@ -79,6 +119,14 @@ function ExperimentalsTab({
       reader.readAsText(file);
     };
     input.click();
+  };
+
+  // Clear blueprints and experimentals
+  const clearBuilds = () => {
+    if (window.confirm('Are you sure you want to clear all blueprints and experimentals? This cannot be undone.')) {
+      setSelectedBlueprints([]);
+      setSelectedExperimentals([]);
+    }
   };
 
   const availableExperimentals = selectedModule ? Object.keys(EXPERIMENTALS_DB[selectedModule]?.experimentals || {}) : [];
@@ -93,6 +141,9 @@ function ExperimentalsTab({
           </button>
           <button className="btn-download" onClick={downloadExperimentals}>
             ⬇️ Download
+          </button>
+          <button className="btn-download" onClick={clearBuilds} style={{ color: '#dc2626' }}>
+            🗑️ Clear
           </button>
         </div>
       </div>

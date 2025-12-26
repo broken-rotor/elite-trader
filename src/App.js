@@ -552,6 +552,8 @@ function App() {
             setStrategy={setStrategy}
             selectedBlueprints={selectedBlueprints}
             setSelectedBlueprints={setSelectedBlueprints}
+            selectedExperimentals={selectedExperimentals}
+            setSelectedExperimentals={setSelectedExperimentals}
             addBlueprint={addBlueprint}
             removeBlueprint={removeBlueprint}
             updateBlueprintRolls={updateBlueprintRolls}
@@ -571,6 +573,8 @@ function App() {
             setSelectedExperimental={setSelectedExperimental}
             selectedExperimentals={selectedExperimentals}
             setSelectedExperimentals={setSelectedExperimentals}
+            selectedBlueprints={selectedBlueprints}
+            setSelectedBlueprints={setSelectedBlueprints}
             addExperimental={addExperimental}
             removeExperimental={removeExperimental}
             updateExperimentalQuantity={updateExperimentalQuantity}

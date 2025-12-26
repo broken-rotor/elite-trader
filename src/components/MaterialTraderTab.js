@@ -98,6 +98,13 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     input.click();
   };
 
+  // Clear inventory
+  const clearInventory = () => {
+    if (window.confirm('Are you sure you want to clear your entire inventory? This cannot be undone.')) {
+      setInventory([]);
+    }
+  };
+
   // Get materials for a specific category, sorted by grade (1-5)
   const getMaterialsForCategory = (category, type) => {
     const typePrefix = type === 'raw' ? 'Raw' : type === 'manufactured' ? 'Manufactured' : 'Encoded';
@@ -234,6 +241,9 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
           </button>
           <button className="btn-download" onClick={downloadInventory}>
             ⬇️ Download
+          </button>
+          <button className="btn-download" onClick={clearInventory} style={{ color: '#dc2626' }}>
+            🗑️ Clear
           </button>
         </div>
       </div>
