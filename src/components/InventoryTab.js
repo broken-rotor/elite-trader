@@ -78,6 +78,13 @@ function InventoryTab({
     input.click();
   };
 
+  // Clear inventory
+  const clearInventory = () => {
+    if (window.confirm('Are you sure you want to clear your entire inventory? This cannot be undone.')) {
+      setInventory([]);
+    }
+  };
+
   return (
     <div className="panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -88,6 +95,9 @@ function InventoryTab({
           </button>
           <button className="btn-download" onClick={downloadInventory}>
             ⬇️ Download
+          </button>
+          <button className="btn-download" onClick={clearInventory} style={{ color: '#dc2626' }}>
+            🗑️ Clear
           </button>
         </div>
       </div>

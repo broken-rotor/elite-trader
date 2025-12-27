@@ -34,7 +34,7 @@ const CATEGORY_ORDER = {
   ]
 };
 
-function MaterialTraderTab({ traderType, setTraderType, inventory, updateInventoryQuantity, setInventory }) {
+function MaterialTraderTab({ traderType, setTraderType, inventory, updateInventoryQuantity, setInventory, allNeeds }) {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
 
@@ -98,6 +98,13 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     input.click();
   };
 
+  // Clear inventory
+  const clearInventory = () => {
+    if (window.confirm('Are you sure you want to clear your entire inventory? This cannot be undone.')) {
+      setInventory([]);
+    }
+  };
+
   // Get materials for a specific category, sorted by grade (1-5)
   const getMaterialsForCategory = (category, type) => {
     const typePrefix = type === 'raw' ? 'Raw' : type === 'manufactured' ? 'Manufactured' : 'Encoded';
@@ -128,6 +135,13 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     if (!materialName) return 0;
     const invItem = inventory.find(i => i.item === materialName);
     return invItem ? invItem.quantity : 0;
+  };
+
+  // Get required quantity from needs
+  const getRequiredQuantity = (materialName) => {
+    if (!materialName || !allNeeds) return 0;
+    const needItem = allNeeds.find(n => n.item === materialName);
+    return needItem ? needItem.quantity : 0;
   };
 
   // Handle cell click to start editing
@@ -161,6 +175,7 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
     }
 
     const quantity = getInventoryQuantity(material.item);
+    const required = getRequiredQuantity(material.item);
     const isEditing = editingCell === material.item;
     const qualityClass = `quality-${material.quality}`;
 
@@ -185,7 +200,14 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
             min="0"
           />
         ) : (
-          <div className="material-quantity">{quantity || 0}</div>
+          <div className={`material-quantity ${quantity >= required ? 'satisfied' : 'unsatisfied'}`}>
+            {quantity || 0}
+            {required > 0 && (
+              <span className="material-required">
+                /{required}
+              </span>
+            )}
+          </div>
         )}
         <div className="material-name">{material.item}</div>
       </div>
@@ -219,6 +241,9 @@ function MaterialTraderTab({ traderType, setTraderType, inventory, updateInvento
           </button>
           <button className="btn-download" onClick={downloadInventory}>
             ⬇️ Download
+          </button>
+          <button className="btn-download" onClick={clearInventory} style={{ color: '#dc2626' }}>
+            🗑️ Clear
           </button>
         </div>
       </div>
