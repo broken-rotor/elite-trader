@@ -771,12 +771,52 @@ export const BLUEPRINTS_DB = {
         }
       }
     }
-  }
+  },
   // TODO: Burst Laser
   // TODO: Cannon
   // TODO: Fragment Cannon
   // TODO: Mine Launcher
-  // TODO: Missile Rack
+  'Missile Rack': {
+    name: 'Missile Rack',
+    blueprints: {
+      'High Caacity': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1}],
+          2: [{ item: 'Mechanical Scrap', qty: 1}, { item: 'Vanadium', qty: 1}],
+          3: [{ item: 'Mechanical Scrap', qty: 1}, { item: 'Vanadium', qty: 1}, { item: 'Niobium', qty: 1}],
+          4: [{ item: 'Mechanical Equipment', qty: 1}, { item: 'High Density Composites', qty: 1}, { item: 'Tin', qty: 1}],
+          5: [{ item: 'Mechanical Components', qty: 1}, { item: 'Proprietary Composites', qty: 1}, { item: 'Military Supercapacitors', qty: 1}]
+        },
+      },
+      'Lightweight': {
+        grades: {
+          1: [{ item: 'Phosphorus', qty: 1}],
+          2: [{ item: 'Salvaged Alloys', qty: 1}, { item: 'Manganese', qty: 1}],
+          3: [{ item: 'Salvaged Alloys', qty: 1}, { item: 'Manganese', qty: 1}, { item: 'Conductive Ceramics', qty: 1}],
+          4: [{ item: 'Conductive Components', qty: 1}, { item: 'Phase Alloys', qty: 1}, { item: 'Proto Light Alloys', qty: 1}],
+          5: [{ item: 'Conductive Ceramics', qty: 1}, { item: 'Proto Light Alloys', qty: 1}, { item: 'Proto Radiolic Alloys', qty: 1}]
+        },
+      },
+      'Rapid Fire': {
+        grades: {
+          1: [{ item: 'Mechanical Scrap', qty: 1}],
+          2: [{ item: 'Mechanical Scrap', qty: 1}, { item: 'Heat Dispersion Plate', qty: 1}],
+          3: [{ item: 'Specialised Legacy Firmware', qty: 1}, { item: 'Mechanical Equipment', qty: 1}, { item: 'Precipitated Alloys', qty: 1}],
+          4: [{ item: 'Modified Consumer Firmware', qty: 1}, { item: 'Mechanical Components', qty: 1}, { item: 'Thermic Alloys', qty: 1}],
+          5: [{ item: 'Precipitated Alloys', qty: 1}, { item: 'Configurable Components', qty: 1}, { item: 'Technetium', qty: 1}]
+        },
+      },
+      'Sturdy': {
+        grades: {
+          1: [{ item: 'Nickel', qty: 1}],
+          2: [{ item: 'Nickel', qty: 1}, { item: 'Shield Emitters', qty: 1}],
+          3: [{ item: 'Nickel', qty: 1}, { item: 'Shield Emitters', qty: 1}, { item: 'Tungsten', qty: 1}],
+          4: [{ item: 'Zinc', qty: 1}, { item: 'Tungsten', qty: 1}, { item: 'Molybdenum', qty: 1}],
+          5: [{ item: 'High Density Composites', qty: 1}, { item: 'Molybdenum', qty: 1}, { item: 'Technetium', qty: 1}]
+        }
+      }
+    }
+  }
   // TODO: Multi-Cannon
   // TODO: Plasma Accelerator
   // TODO: Pulse Laser
