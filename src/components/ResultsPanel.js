@@ -104,10 +104,9 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                         <span className={`trade-badge ${
                           trade.action === 'UPGRADE' ? 'upgrade' :
                           trade.action === 'DOWNGRADE' ? 'downgrade' :
-                          trade.action === 'CROSS_TYPE' ? 'cross-type' :
-                          trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                          trade.action === 'CROSS_TRADE' ? 'cross-trade' : 'other'
                         }`}>
-                          {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
+                          {trade.action.replace('_', ' ')}
                         </span>
                         <span className="input-amt">{trade.input.amount}×</span>
                         <span className={getQualityClass(trade.input.quality)}>
@@ -118,11 +117,6 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                         <span className={getQualityClass(trade.output.quality)}>
                           {trade.output.item} ({getSubcategory(trade.output.item)})
                         </span>
-                        {trade.remainder && (
-                          <span className="remainder">
-                            {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
-                          </span>
-                        )}
                         <span className="ratio">[{trade.ratio}]</span>
                         <span className="filler"></span>
                         <Tooltip content={tooltipContent} disabled={!canExecute}>
@@ -166,10 +160,9 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                     <span className={`trade-badge ${
                       trade.action === 'UPGRADE' ? 'upgrade' :
                       trade.action === 'DOWNGRADE' ? 'downgrade' :
-                      trade.action === 'CROSS_TYPE' ? 'cross-type' :
-                      trade.action === 'DIRECT_CONVERSION' ? 'direct-conversion' : 'same-slot'
+                      trade.action === 'CROSS_TRADE' ? 'cross-trade' : 'other'
                     }`}>
-                      {trade.action === 'DIRECT_CONVERSION' ? 'DIRECT' : trade.action.replace('_', ' ')}
+                      {trade.action.replace('_', ' ')}
                     </span>
                     <span className="input-amt">{trade.input.amount}×</span>
                     <span className={getQualityClass(trade.input.quality)}>
@@ -180,11 +173,6 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
                     <span className={getQualityClass(trade.output.quality)}>
                       {trade.output.item} ({getSubcategory(trade.output.item)})
                     </span>
-                    {trade.remainder && (
-                      <span className="remainder">
-                        {' '}({trade.remainder.amount}× {trade.remainder.item} leftover)
-                      </span>
-                    )}
                     <span className="ratio">[{trade.ratio}]</span>
                     <Tooltip content={tooltipContent} disabled={!canExecute}>
                       <button
@@ -211,11 +199,6 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
             {result.fulfilled.map((f, i) => (
               <div key={i} className="result-item fulfilled">
                 <span className="name">{f.quantity}× {f.item}</span>
-                <span className="method">
-                  {f.method === 'DIRECT' ? '(direct)' :
-                   f.method === 'SAME_SLOT' ? `(from ${f.from})` :
-                   `(${f.consumed}× ${f.from})`}
-                </span>
               </div>
             ))}
           </div>

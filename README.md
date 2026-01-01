@@ -2,6 +2,8 @@
 
 A React application to optimize material trading for Elite Dangerous engineering.
 
+URL: https://broken-rotor.github.io/elite-trader/
+
 ## Setup Instructions
 
 1. **Prerequisites**: Make sure you have Node.js installed (v16 or higher)

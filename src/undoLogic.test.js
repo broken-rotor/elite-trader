@@ -125,7 +125,6 @@ describe('Trade Undo Logic', () => {
       trade: {
         input: { item: 'Chromium', amount: 6, quality: 2 },
         output: { item: 'Vanadium', amount: 1, quality: 3 },
-        remainder: { item: 'Chromium', amount: 2, quality: 2 },
         action: 'UPGRADE',
         ratio: '6:1'
       }
@@ -156,8 +155,7 @@ describe('Trade Undo Logic', () => {
 
     const trade = {
       input: { item: 'Chromium', amount: 6, quality: 2 },
-      output: { item: 'Vanadium', amount: 1, quality: 3 },
-      remainder: null // No remainder in this case
+      output: { item: 'Vanadium', amount: 1, quality: 3 }
     };
 
     // Simulate undo
@@ -193,8 +191,7 @@ describe('Trade Undo Logic', () => {
 
     const trade = {
       input: { item: 'Iron', amount: 6, quality: 1 },
-      output: { item: 'Nickel', amount: 1, quality: 2 },
-      remainder: null // No remainder
+      output: { item: 'Nickel', amount: 1, quality: 2 }
     };
 
     // Simulate undo
