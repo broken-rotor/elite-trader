@@ -25,7 +25,7 @@ describe('ResultsPanel', () => {
     const allNeeds = [{ item: 'Iron', quantity: 5 }];
     const result = {
       trades: [],
-      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      fulfilled: [{ item: 'Iron', quantity: 5 }],
       unfulfilled: []
     };
 
@@ -45,7 +45,7 @@ describe('ResultsPanel', () => {
           ratio: '6:1'
         }
       ],
-      fulfilled: [{ item: 'Carbon', quantity: 3, method: 'TRADED', from: 'Iron', consumed: 18 }],
+      fulfilled: [{ item: 'Carbon', quantity: 3, from: 'Iron', consumed: 18 }],
       unfulfilled: []
     };
 
@@ -72,7 +72,7 @@ describe('ResultsPanel', () => {
           ratio: '1:3'
         }
       ],
-      fulfilled: [{ item: 'Iron', quantity: 9, method: 'TRADED', from: 'Carbon', consumed: 3 }],
+      fulfilled: [{ item: 'Iron', quantity: 9, from: 'Carbon', consumed: 3 }],
       unfulfilled: []
     };
 
@@ -82,68 +82,25 @@ describe('ResultsPanel', () => {
     expect(badge).toHaveClass('downgrade');
   });
 
-  test('displays CROSS_TYPE trade badge correctly', () => {
+  test('displays CROSS_TRADE trade badge correctly', () => {
     const allNeeds = [{ item: 'Nickel', quantity: 1 }];
     const result = {
       trades: [
         {
-          action: 'CROSS_TYPE',
+          action: 'CROSS_TRADE',
           input: { item: 'Iron', amount: 6, quality: 1 },
           output: { item: 'Nickel', amount: 1, quality: 1 },
           ratio: '6:1'
         }
       ],
-      fulfilled: [{ item: 'Nickel', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
+      fulfilled: [{ item: 'Nickel', quantity: 1, from: 'Iron', consumed: 6 }],
       unfulfilled: []
     };
 
     render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
-    const badge = screen.getByText('CROSS TYPE');
-    expect(badge).toHaveClass('cross-type');
-  });
-
-  test('displays fulfilled materials with DIRECT method', () => {
-    const allNeeds = [{ item: 'Iron', quantity: 5 }];
-    const result = {
-      trades: [],
-      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
-      unfulfilled: []
-    };
-
-    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
-
-    expect(screen.getByText('✓ Fulfilled (1)')).toBeInTheDocument();
-    expect(screen.getByText('5× Iron')).toBeInTheDocument();
-    expect(screen.getByText('(direct)')).toBeInTheDocument();
-  });
-
-  test('displays fulfilled materials with SAME_SLOT method', () => {
-    const allNeeds = [{ item: 'Iron', quantity: 5 }];
-    const result = {
-      trades: [],
-      fulfilled: [{ item: 'Iron', quantity: 5, method: 'SAME_SLOT', from: 'Nickel' }],
-      unfulfilled: []
-    };
-
-    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
-
-    expect(screen.getByText('5× Iron')).toBeInTheDocument();
-    expect(screen.getByText('(from Nickel)')).toBeInTheDocument();
-  });
-
-  test('displays fulfilled materials with trade method', () => {
-    const allNeeds = [{ item: 'Carbon', quantity: 1 }];
-    const result = {
-      trades: [],
-      fulfilled: [{ item: 'Carbon', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
-      unfulfilled: []
-    };
-
-    render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
-
-    expect(screen.getByText('1× Carbon')).toBeInTheDocument();
-    expect(screen.getByText('(6× Iron)')).toBeInTheDocument();
+    const badge = screen.getByText('CROSS TRADE');
+    expect(badge).toHaveClass('cross-trade');
   });
 
   test('displays unfulfilled materials with sources', () => {
@@ -171,7 +128,7 @@ describe('ResultsPanel', () => {
     const allNeeds = [{ item: 'Iron', quantity: 5 }];
     const result = {
       trades: [],
-      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      fulfilled: [{ item: 'Iron', quantity: 5 }],
       unfulfilled: []
     };
 
@@ -188,8 +145,8 @@ describe('ResultsPanel', () => {
     const result = {
       trades: [],
       fulfilled: [
-        { item: 'Iron', quantity: 5, method: 'DIRECT' },
-        { item: 'Nickel', quantity: 3, method: 'DIRECT' }
+        { item: 'Iron', quantity: 5 },
+        { item: 'Nickel', quantity: 3 }
       ],
       unfulfilled: []
     };
@@ -239,7 +196,7 @@ describe('ResultsPanel', () => {
     ];
     const result = {
       trades: [],
-      fulfilled: [{ item: 'Iron', quantity: 5, method: 'DIRECT' }],
+      fulfilled: [{ item: 'Iron', quantity: 5 }],
       unfulfilled: [
         {
           item: 'Nickel',
@@ -274,7 +231,7 @@ describe('ResultsPanel', () => {
           ratio: '1:3'
         }
       ],
-      fulfilled: [{ item: 'Carbon', quantity: 2, method: 'TRADED', from: 'Iron', consumed: 12 }],
+      fulfilled: [{ item: 'Carbon', quantity: 2, from: 'Iron', consumed: 12 }],
       unfulfilled: []
     };
 
@@ -295,7 +252,7 @@ describe('ResultsPanel', () => {
           ratio: '6:1'
         }
       ],
-      fulfilled: [{ item: 'Carbon', quantity: 1, method: 'TRADED', from: 'Iron', consumed: 6 }],
+      fulfilled: [{ item: 'Carbon', quantity: 1, from: 'Iron', consumed: 6 }],
       unfulfilled: []
     };
 

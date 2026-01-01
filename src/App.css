@@ -454,7 +454,7 @@
   color: #60a5fa;
 }
 
-.trade-badge.cross-type {
+.trade-badge.cross-trade {
   background-color: rgba(88, 28, 135, 0.5);
   color: #c084fc;
 }
@@ -545,7 +545,6 @@
 }
 
 .result-item.fulfilled .name { color: #6ee7b7; }
-.result-item.fulfilled .method { color: #64748b; margin-left: 8px; }
 
 .result-item.unfulfilled {
   background-color: rgba(127, 29, 29, 0.2);

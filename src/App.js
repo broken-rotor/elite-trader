@@ -436,16 +436,6 @@ function App() {
       newInventory.push({ item: trade.output.item, quantity: trade.output.amount });
     }
 
-    // Add remainder if present
-    if (trade.remainder && trade.remainder.amount > 0) {
-      const remainderItem = newInventory.find(i => i.item === trade.remainder.item);
-      if (remainderItem) {
-        remainderItem.quantity += trade.remainder.amount;
-      } else {
-        newInventory.push({ item: trade.remainder.item, quantity: trade.remainder.amount });
-      }
-    }
-
     // Filter out zero-quantity items
     setInventory(newInventory.filter(i => i.quantity > 0));
 
@@ -469,14 +459,6 @@ function App() {
     const outputItem = newInventory.find(i => i.item === trade.output.item);
     if (outputItem) {
       outputItem.quantity -= trade.output.amount;
-    }
-
-    // Remove remainder if present
-    if (trade.remainder && trade.remainder.amount > 0) {
-      const remainderItem = newInventory.find(i => i.item === trade.remainder.item);
-      if (remainderItem) {
-        remainderItem.quantity -= trade.remainder.amount;
-      }
     }
 
     // Filter out zero-quantity items
