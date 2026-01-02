@@ -100,7 +100,7 @@ describe('ResultsPanel', () => {
     render(<ResultsPanel allNeeds={allNeeds} result={result} {...defaultProps} />);
 
     const badge = screen.getByText('CROSS TRADE');
-    expect(badge).toHaveClass('cross-trade');
+    expect(badge).toHaveClass('cross_trade');
   });
 
   test('displays unfulfilled materials with sources', () => {
