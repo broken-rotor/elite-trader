@@ -27,6 +27,24 @@ const TRADE_UP_COST = 6;
 const TRADE_DOWN_YIELD = 3;
 const TRADE_ACROSS_COST = 6;
 
+
+function getTargetQty(sourceType, sourceGrade, targetType, targetGrade, sourceQty) {
+    let targetQty = 0;
+    if (sourceGrade >= targetGrade) {
+      targetQty = sourceQty * Math.pow(TRADE_DOWN_YIELD, sourceGrade - targetGrade);
+    } else {
+      targetQty = Math.floor(sourceQty / Math.pow(TRADE_UP_COST, targetGrade - sourceGrade));
+    }
+
+    if (sourceType !== targetType) {
+      if (targetQty % TRADE_ACROSS_COST !== 0) {
+        throw new Error(`Invalid cross-type trade: ${sourceType}/${sourceGrade}/${sourceQty} => ${targetType}/${targetGrade}`);
+      }
+      targetQty = Math.floor(targetQty / TRADE_ACROSS_COST);
+    }
+    return targetQty;
+}
+
 // Trade class to represent a single trade
 export class Trade {
   constructor(sourceType, sourceGrade, sourceQty, targetType, targetGrade, targetQty = 0, tradeType = '') {
@@ -40,18 +58,7 @@ export class Trade {
 
     // Calculate target quantity if not provided
     if (!this.targetQty) {
-      if (this.sourceGrade >= this.targetGrade) {
-        this.targetQty = this.sourceQty * Math.pow(TRADE_DOWN_YIELD, this.sourceGrade - this.targetGrade);
-      } else {
-        this.targetQty = Math.floor(this.sourceQty / Math.pow(TRADE_UP_COST, this.targetGrade - this.sourceGrade));
-      }
-
-      if (this.sourceType !== this.targetType) {
-        if (this.targetQty % TRADE_ACROSS_COST !== 0) {
-          throw new Error(`Invalid cross-type trade: ${this.sourceType}/${this.sourceGrade}/${this.sourceQty} => ${this.targetType}/${this.targetGrade}`);
-        }
-        this.targetQty = Math.floor(this.targetQty / TRADE_ACROSS_COST);
-      }
+      this.targetQty = getTargetQty(this.sourceType, this.sourceGrade, this.targetType, this.targetGrade, this.sourceQty);
     }
 
     // Determine trade type if not provided
@@ -81,7 +88,7 @@ export class Trades {
     this._trades.set(key, current + sourceQty);
   }
 
-  getTrades() {
+  _getSortedTrades() {
     const sortKey = (entry) => {
       const [key] = entry;
       const [sourceType, sourceGrade, targetType, targetGrade] = key.split('|').map((v, i) => i % 2 === 1 ? parseInt(v) : v);
@@ -109,11 +116,48 @@ export class Trades {
       }
       return 0;
     });
+    return entries;
+  }
 
+  _simplifyOne() {
+    for (const [aKey, aSourceQty] of this._getSortedTrades()) {
+      const [aSourceType, aSourceGrade, aTargetType, aTargetGrade] = aKey.split('|').map((v, i) => i % 2 === 1 ? parseInt(v) : v);
+
+      for (const [bKey, bSourceQty] of this._trades.entries()) {
+        const [bSourceType, bSourceGrade, bTargetType, bTargetGrade] = bKey.split('|').map((v, i) => i % 2 === 1 ? parseInt(v) : v);
+
+        const bTargetQty = getTargetQty(bSourceType, bSourceGrade, bTargetType, bTargetGrade, bSourceQty);
+
+        // Check if trade A's input matches trade B's output
+        if (aSourceQty === 0 || aSourceType !== bTargetType || aSourceGrade !== bTargetGrade || aSourceQty !== bTargetQty) {
+          continue;
+        }
+
+        // Combine the trades: remove A and B, add direct trade from B's source to A's target
+        this._trades.set(aKey, this._trades.get(aKey) - aSourceQty);
+        this._trades.set(bKey, this._trades.get(bKey) - bSourceQty);
+        this.addTrade(bSourceType, bSourceGrade, aTargetType, aTargetGrade, bSourceQty);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  _simplify() {
+    while (this._simplifyOne()) {
+      // Keep simplifying until no more simplifications are possible
+    }
+  }
+
+  getTrades() {
+    this._simplify();
+    const entries = this._getSortedTrades();
     const ret = [];
     for (const [key, sourceQty] of entries) {
-      const [sourceType, sourceGrade, targetType, targetGrade] = key.split('|').map((v, i) => i % 2 === 1 ? parseInt(v) : v);
-      ret.push(new Trade(sourceType, sourceGrade, sourceQty, targetType, targetGrade));
+      if (sourceQty > 0) {
+        const [sourceType, sourceGrade, targetType, targetGrade] = key.split('|').map((v, i) => i % 2 === 1 ? parseInt(v) : v);
+        ret.push(new Trade(sourceType, sourceGrade, sourceQty, targetType, targetGrade));
+      }
     }
 
     return ret;
@@ -463,8 +507,9 @@ function convertTradesToDisplay(trades) {
       ratio = `${costPerUnit}:1`;
     } else if (trade.tradeType.startsWith('CROSS_')) {
       if (trade.tradeType === 'CROSS_DOWNGRADE') {
-        const yieldPerUnit = Math.pow(TRADE_DOWN_YIELD, trade.sourceGrade - trade.targetGrade);
-        ratio = `${TRADE_ACROSS_COST * yieldPerUnit}:1`;
+        const baseYieldPerUnit = Math.pow(TRADE_DOWN_YIELD, trade.sourceGrade - trade.targetGrade);
+        const srcMaterials = Math.ceil(TRADE_ACROSS_COST / baseYieldPerUnit);
+        ratio = `${srcMaterials}:${srcMaterials * baseYieldPerUnit / TRADE_ACROSS_COST}`;
       } else if (trade.tradeType === 'CROSS_UPGRADE') {
         const costPerUnit = Math.pow(TRADE_UP_COST, trade.targetGrade - trade.sourceGrade);
         ratio = `${costPerUnit * TRADE_ACROSS_COST}:1`;
