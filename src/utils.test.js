@@ -1,4 +1,3 @@
-import { getMaterial } from './database';
 import {
   downgrade,
   upgrade,
@@ -6,11 +5,7 @@ import {
   optimizeOne,
   Trade,
   Trades,
-  getConversionCost,
-  optimizeTrading,
-  TRADE_UP_COST,
-  TRADE_DOWN_YIELD,
-  TRADE_ACROSS_COST
+  optimizeTrading
 } from './utils';
 
 // Use realistic material types that are in the same main category (Manufactured)
@@ -78,8 +73,7 @@ describe('Downgrade', () => {
 
     expect(done).toBe(false);
     expect(trades.getTrades()).toEqual([
-      new Trade(TYPE1, 4, 2, TYPE1, 3, 6, 'DOWNGRADE'),
-      new Trade(TYPE1, 3, 6, TYPE1, 2, 18, 'DOWNGRADE'),
+      new Trade(TYPE1, 4, 2, TYPE1, 2, 18, 'DOWNGRADE'),
       new Trade(TYPE1, 2, 17, TYPE1, 1, 51, 'DOWNGRADE'),
       new Trade(TYPE1, 1, 48, TYPE1, 0, 144, 'DOWNGRADE'),
     ]);
@@ -123,12 +117,11 @@ describe('CrossType', () => {
       [TYPE1]: [0, 0, 0, 1, 0],
     };
 
-    const [resultInvs, done] = crossTypeOne(TYPE1, invs, needs, trades);
+    const [, done] = crossTypeOne(TYPE1, invs, needs, trades);
 
     expect(done).toBe(true);
     expect(trades.getTrades()).toEqual([
-      new Trade(TYPE2, 4, 2, TYPE2, 3, 6, 'DOWNGRADE'),
-      new Trade(TYPE2, 3, 6, TYPE1, 3, 1, 'CROSS_TRADE'),
+      new Trade(TYPE2, 4, 2, TYPE1, 3, 1, 'CROSS_DOWNGRADE'),
     ]);
   });
 });
@@ -572,17 +565,10 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.unfulfilled).toHaveLength(0);
 
       // Should have a combined cross-type trade with downgrade (2:1 ratio)
-      expect(result.trades).toHaveLength(2);
-      const downgradeTrade = result.trades[0];
-      expect(downgradeTrade).toBeDefined();
-      expect(downgradeTrade.ratio).toBe('1:3');
-      expect(downgradeTrade.input.amount).toBe(2);
-      expect(downgradeTrade.output.amount).toBe(6);
-      const crossTypeTrade = result.trades[1];
-      expect(crossTypeTrade).toBeDefined();
-      expect(crossTypeTrade.ratio).toBe('6:1');
-      expect(crossTypeTrade.input.amount).toBe(6);
-      expect(crossTypeTrade.output.amount).toBe(1);
+      expect(result.trades).toHaveLength(1);
+      expect(result.trades[0].ratio).toBe('2:1');
+      expect(result.trades[0].input.amount).toBe(2);
+      expect(result.trades[0].output.amount).toBe(1);
     });
   });
 
@@ -791,18 +777,13 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(2);
+      expect(result.trades).toHaveLength(1);
 
       expect(result.trades[0].input.quality).toBe(5);
       expect(result.trades[0].output.quality).toBe(4);
-      expect(result.trades[0].ratio).toBe('1:3');
+      expect(result.trades[0].ratio).toBe('2:1');
       expect(result.trades[0].input.amount).toBe(2);
-      expect(result.trades[0].output.amount).toBe(6);
-      expect(result.trades[1].input.quality).toBe(4);
-      expect(result.trades[1].output.quality).toBe(4);
-      expect(result.trades[1].ratio).toBe('6:1');
-      expect(result.trades[1].input.amount).toBe(6);
-      expect(result.trades[1].output.amount).toBe(1);
+      expect(result.trades[0].output.amount).toBe(1);
 
       // The remaining inventory should show leftover Imperial Shielding
       const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
@@ -822,7 +803,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(3);
+      expect(result.trades).toHaveLength(2);
 
       expect(result.trades[0].input.quality).toBe(5);
       expect(result.trades[0].output.quality).toBe(4);
@@ -831,14 +812,9 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[0].output.amount).toBe(3);
       expect(result.trades[1].input.quality).toBe(4);
       expect(result.trades[1].output.quality).toBe(3);
-      expect(result.trades[1].ratio).toBe('1:3');
+      expect(result.trades[1].ratio).toBe('2:1');
       expect(result.trades[1].input.amount).toBe(2);
-      expect(result.trades[1].output.amount).toBe(6);
-      expect(result.trades[2].input.quality).toBe(3);
-      expect(result.trades[2].output.quality).toBe(3);
-      expect(result.trades[2].ratio).toBe('6:1');
-      expect(result.trades[2].input.amount).toBe(6);
-      expect(result.trades[2].output.amount).toBe(1);
+      expect(result.trades[1].output.amount).toBe(1);
 
       // The remaining inventory should show leftover Imperial Shielding
       const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
@@ -858,14 +834,13 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(4);
+      expect(result.trades).toHaveLength(3);
 
       expect(result.trades[0].input.quality).toBe(5);
       expect(result.trades[0].output.quality).toBe(4);
       expect(result.trades[0].ratio).toBe('1:3');
       expect(result.trades[0].input.amount).toBe(1);
       expect(result.trades[0].output.amount).toBe(3);
-
       expect(result.trades[1].input.quality).toBe(4);
       expect(result.trades[1].output.quality).toBe(3);
       expect(result.trades[1].ratio).toBe('1:3');
@@ -874,15 +849,9 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       expect(result.trades[2].input.quality).toBe(3);
       expect(result.trades[2].output.quality).toBe(2);
-      expect(result.trades[2].ratio).toBe('1:3');
+      expect(result.trades[2].ratio).toBe('2:1');
       expect(result.trades[2].input.amount).toBe(2);
-      expect(result.trades[2].output.amount).toBe(6);
-
-      expect(result.trades[3].input.quality).toBe(2);
-      expect(result.trades[3].output.quality).toBe(2);
-      expect(result.trades[3].ratio).toBe('6:1');
-      expect(result.trades[3].input.amount).toBe(6);
-      expect(result.trades[3].output.amount).toBe(1);
+      expect(result.trades[2].output.amount).toBe(1);
 
       // The remaining inventory should show leftover Imperial Shielding
       const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
@@ -902,7 +871,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[0].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(5);
+      expect(result.trades).toHaveLength(4);
 
       expect(result.trades[0].input.quality).toBe(5);
       expect(result.trades[0].output.quality).toBe(4);
@@ -921,14 +890,11 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[2].output.amount).toBe(3);
       expect(result.trades[3].input.quality).toBe(2);
       expect(result.trades[3].output.quality).toBe(1);
-      expect(result.trades[3].ratio).toBe('1:3');
+      expect(result.trades[3].ratio).toBe('2:1');
       expect(result.trades[3].input.amount).toBe(2);
-      expect(result.trades[3].output.amount).toBe(6);
-      expect(result.trades[4].input.quality).toBe(1);
-      expect(result.trades[4].output.quality).toBe(1);
-      expect(result.trades[4].ratio).toBe('6:1');
-      expect(result.trades[4].input.amount).toBe(6);
-      expect(result.trades[4].output.amount).toBe(1);
+      expect(result.trades[3].output.amount).toBe(1);
+      expect(result.trades[3].input.quality).toBe(2);
+      expect(result.trades[3].output.quality).toBe(1);
 
       // The remaining inventory should show leftover Imperial Shielding
       const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
@@ -955,7 +921,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[2].quantity).toBe(1);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(4);
+      expect(result.trades).toHaveLength(3);
 
       expect(result.trades[0].input.quality).toBe(5);
       expect(result.trades[0].output.quality).toBe(4);
@@ -969,14 +935,9 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[1].output.amount).toBe(3);
       expect(result.trades[2].input.quality).toBe(3);
       expect(result.trades[2].output.quality).toBe(2);
-      expect(result.trades[2].ratio).toBe('1:3');
+      expect(result.trades[2].ratio).toBe('2:1');
       expect(result.trades[2].input.amount).toBe(2);
-      expect(result.trades[2].output.amount).toBe(6);
-      expect(result.trades[3].input.quality).toBe(2);
-      expect(result.trades[3].output.quality).toBe(2);
-      expect(result.trades[3].ratio).toBe('6:1');
-      expect(result.trades[3].input.amount).toBe(6);
-      expect(result.trades[3].output.amount).toBe(1);
+      expect(result.trades[2].output.amount).toBe(1);
 
       // The remaining inventory should show leftover Imperial Shielding
       const remainingImperialShielding = result.remainingInventory.find(i => i.item === 'Imperial Shielding');
@@ -1068,13 +1029,6 @@ describe('Trading Edge Cases - Comprehensive', () => {
 
       const result = optimizeTrading(inventory, needs);
 
-      // Expected Trades
-      // Trade 1: 1x Ruthenium -> 9x Manganese
-      // Trade 2: 2x Cadmium -> 6x Manganese
-      // Trade 3: 2x Manganese -> 6x Sulphur
-      // Trade 4: 12x Manganese -> 2x Arsenic
-      // Trade 5: 6x Sulphur -> 1x Phosphorus
-
       // All needs should be fulfilled
       expect(result.fulfilled).toHaveLength(3);
       expect(result.fulfilled[0].item).toBe('Manganese');
@@ -1085,7 +1039,7 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.fulfilled[2].quantity).toBe(12);
       expect(result.unfulfilled).toHaveLength(0);
 
-      expect(result.trades).toHaveLength(5);
+      expect(result.trades).toHaveLength(4);
       expect(result.trades[0].action).toBe('DOWNGRADE');
       expect(result.trades[0].input.item).toBe('Ruthenium');
       expect(result.trades[0].input.amount).toBe(1);
@@ -1096,21 +1050,16 @@ describe('Trading Edge Cases - Comprehensive', () => {
       expect(result.trades[1].input.amount).toBe(2);
       expect(result.trades[1].output.item).toBe('Manganese');
       expect(result.trades[1].output.amount).toBe(6);
-      expect(result.trades[2].action).toBe('DOWNGRADE');
+      expect(result.trades[2].action).toBe('CROSS_TRADE');
       expect(result.trades[2].input.item).toBe('Manganese');
-      expect(result.trades[2].input.amount).toBe(2);
-      expect(result.trades[2].output.item).toBe('Sulphur');
-      expect(result.trades[2].output.amount).toBe(6);
-      expect(result.trades[3].action).toBe('CROSS_TRADE');
+      expect(result.trades[2].input.amount).toBe(12);
+      expect(result.trades[2].output.item).toBe('Arsenic');
+      expect(result.trades[2].output.amount).toBe(2);
+      expect(result.trades[3].action).toBe('CROSS_DOWNGRADE');
       expect(result.trades[3].input.item).toBe('Manganese');
-      expect(result.trades[3].input.amount).toBe(12);
-      expect(result.trades[3].output.item).toBe('Arsenic');
-      expect(result.trades[3].output.amount).toBe(2);
-      expect(result.trades[4].action).toBe('CROSS_TRADE');
-      expect(result.trades[4].input.item).toBe('Sulphur');
-      expect(result.trades[4].input.amount).toBe(6);
-      expect(result.trades[4].output.item).toBe('Phosphorus');
-      expect(result.trades[4].output.amount).toBe(1);
+      expect(result.trades[3].input.amount).toBe(2);
+      expect(result.trades[3].output.item).toBe('Phosphorus');
+      expect(result.trades[3].output.amount).toBe(1);
 
       // The remaining inventory should show leftover Ruthenium
       const remainingRuthenium = result.remainingInventory.find(i => i.item === 'Ruthenium');
@@ -1149,9 +1098,9 @@ describe('Trading Edge Cases - Comprehensive', () => {
       const result3 = optimizeTrading(JSON.parse(JSON.stringify(inventory)), needs3);
 
       // All three should produce the same number of trades
-      expect(result1.trades).toHaveLength(4);
-      expect(result2.trades).toHaveLength(4);
-      expect(result3.trades).toHaveLength(4);
+      expect(result1.trades).toHaveLength(3);
+      expect(result2.trades).toHaveLength(3);
+      expect(result3.trades).toHaveLength(3);
 
       // All needs should be fulfilled
       expect(result1.fulfilled).toHaveLength(3);
