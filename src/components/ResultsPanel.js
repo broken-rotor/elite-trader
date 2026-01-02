@@ -101,11 +101,7 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
 
                     return (
                       <div key={i} className="trade-item">
-                        <span className={`trade-badge ${
-                          trade.action === 'UPGRADE' ? 'upgrade' :
-                          trade.action === 'DOWNGRADE' ? 'downgrade' :
-                          trade.action === 'CROSS_TRADE' ? 'cross-trade' : 'other'
-                        }`}>
+                        <span className={`trade-badge ${trade.action.toLowerCase()}`}>
                           {trade.action.replace('_', ' ')}
                         </span>
                         <span className="input-amt">{trade.input.amount}×</span>
@@ -157,11 +153,7 @@ function ResultsPanel({ allNeeds, result, executeTrade, inventory, tradeHistory,
 
                 return (
                   <div key={i} className="trade-item">
-                    <span className={`trade-badge ${
-                      trade.action === 'UPGRADE' ? 'upgrade' :
-                      trade.action === 'DOWNGRADE' ? 'downgrade' :
-                      trade.action === 'CROSS_TRADE' ? 'cross-trade' : 'other'
-                    }`}>
+                    <span className={`trade-badge ${trade.action.toLowerCase()}`}>
                       {trade.action.replace('_', ' ')}
                     </span>
                     <span className="input-amt">{trade.input.amount}×</span>

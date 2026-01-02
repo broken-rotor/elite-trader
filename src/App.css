@@ -454,20 +454,14 @@
   color: #60a5fa;
 }
 
-.trade-badge.cross-trade {
+.trade-badge.cross_trade {
+  background-color: rgba(79, 43, 138, 0.5);
+  color: #9095fb;
+}
+
+.trade-badge.cross_downgrade {
   background-color: rgba(88, 28, 135, 0.5);
   color: #c084fc;
-}
-
-.trade-badge.same-slot {
-  background-color: rgba(51, 65, 85, 1);
-  color: #cbd5e1;
-}
-
-.trade-badge.direct-conversion {
-  background-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 .trade-item .input-amt { color: #f87171; }
